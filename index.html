@@ -1,0 +1,43 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lighthouse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page-shell">
+    <section class="portal-card" aria-label="Lighthouse Login">
+      <div class="brand-mark" aria-hidden="true">
+        <span class="beam beam-one"></span>
+        <span class="beam beam-two"></span>
+        <span class="tower"></span>
+      </div>
+
+      <h1>Lighthouse</h1>
+
+      <form id="loginForm" class="login-form">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" placeholder="Enter email" autocomplete="email" required />
+
+        <label for="password">Password</label>
+        <div class="password-row">
+          <input id="password" name="password" type="password" placeholder="Enter password" autocomplete="current-password" required />
+          <button type="button" id="togglePassword" aria-label="Show password">Show</button>
+        </div>
+
+        <button class="signin-btn" type="submit">Sign In</button>
+        <p id="statusMessage" class="status-message" role="status"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
+```
