@@ -20,18 +20,33 @@
         <button id="signOutBtn" class="small-btn" type="button">Sign Out</button>
       </header>
 
-      <section class="profile-panel" aria-label="Profile and online status">
+      <section class="profile-panel">
         <form id="profileForm" class="profile-form">
-          <label for="displayNameInput">Display name</label>
+          <label for="displayNameInput">Display Name</label>
           <div class="profile-row">
-            <input id="displayNameInput" type="text" placeholder="Your name" maxlength="30" autocomplete="name" />
+            <input id="displayNameInput" type="text" maxlength="30" autocomplete="nickname" />
             <button type="submit">Save</button>
           </div>
         </form>
+
         <div class="online-panel">
-          <div class="online-title">Online</div>
-          <div id="onlineList" class="online-list">Checking...</div>
+          <span class="online-title">Online</span>
+          <div id="onlineList" class="online-list">Loading...</div>
         </div>
+      </section>
+
+      <section id="adminPanel" class="admin-panel hidden">
+        <div class="admin-head">
+          <strong>Admin</strong>
+          <span>Tools</span>
+        </div>
+        <div class="admin-grid">
+          <button id="clearChatBtn" class="small-btn danger-btn" type="button">Clear Chat</button>
+          <button id="createInviteBtn" class="small-btn" type="button">Create Access Code</button>
+          <button id="exportChatBtn" class="small-btn" type="button">Export Chat</button>
+        </div>
+        <div id="inviteResult" class="invite-result"></div>
+        <div id="memberList" class="member-list"></div>
       </section>
 
       <section id="messages" class="messages" aria-live="polite"></section>

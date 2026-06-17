@@ -3,9 +3,16 @@ import {
   getAuth,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  setPersistence,
-  browserLocalPersistence
+  createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import {
+  getDatabase,
+  ref,
+  get,
+  set,
+  update,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBMZxgShqE5g_bA4-Y8ShUux_FhMITWEFs",
@@ -17,14 +24,86 @@ const firebaseConfig = {
   appId: "1:1040589784841:web:46b16ab5c5c6a7f08af5d8"
 };
 
+const FIRST_ADMIN_EMAIL = 'quevenrecorte@gmail.com';
+const USERNAME_DOMAIN = 'lighthouse.local';
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getDatabase(app);
 
 const loginForm = document.getElementById('loginForm');
+const signupForm = document.getElementById('signupForm');
 const statusMessage = document.getElementById('statusMessage');
+const signupStatus = document.getElementById('signupStatus');
 const togglePassword = document.getElementById('togglePassword');
 const passwordInput = document.getElementById('password');
-const emailInput = document.getElementById('email');
+const showSignupBtn = document.getElementById('showSignupBtn');
+const showLoginBtn = document.getElementById('showLoginBtn');
+let isSubmitting = false;
+
+function cleanUsername(value) {
+  return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
+}
+
+function usernameToEmail(username) {
+  const cleaned = cleanUsername(username);
+  return cleaned.includes('@') ? cleaned : `${cleaned}@${USERNAME_DOMAIN}`;
+}
+
+function displayFromEmail(email) {
+  return String(email || 'user').split('@')[0];
+}
+
+function showStatus(el, message, isError = false) {
+  el.classList.toggle('error', isError);
+  el.textContent = message;
+}
+
+function firebaseMessage(error) {
+  const code = error && error.code ? error.code : '';
+  if (code.includes('invalid-credential') || code.includes('wrong-password') || code.includes('user-not-found')) return 'Invalid username or password.';
+  if (code.includes('email-already-in-use')) return 'Username already exists.';
+  if (code.includes('weak-password')) return 'Password should be at least 6 characters.';
+  if (code.includes('permission-denied')) return 'Access denied. Check your access code or database rules.';
+  return 'Something went wrong. Please try again.';
+}
+
+async function ensureProfileAfterLogin(user) {
+  const userRef = ref(db, `users/${user.uid}`);
+  const snapshot = await get(userRef);
+  const fallbackName = displayFromEmail(user.email);
+  const isFirstAdmin = user.email === FIRST_ADMIN_EMAIL;
+
+  if (!snapshot.exists()) {
+    await set(userRef, {
+      displayName: fallbackName,
+      username: fallbackName,
+      email: user.email || '',
+      role: isFirstAdmin ? 'admin' : 'member',
+      approved: isFirstAdmin,
+      createdAt: serverTimestamp(),
+      lastSeen: serverTimestamp(),
+      online: true
+    });
+    return;
+  }
+
+  const profile = snapshot.val() || {};
+  const updates = {
+    email: user.email || '',
+    lastSeen: serverTimestamp(),
+    online: true
+  };
+
+  if (!profile.displayName) updates.displayName = fallbackName;
+  if (!profile.username) updates.username = fallbackName;
+  if (isFirstAdmin) {
+    updates.role = 'admin';
+    updates.approved = true;
+  }
+
+  await update(userRef, updates);
+}
 
 togglePassword.addEventListener('click', () => {
   const isPassword = passwordInput.type === 'password';
@@ -32,37 +111,99 @@ togglePassword.addEventListener('click', () => {
   togglePassword.textContent = isPassword ? 'Hide' : 'Show';
 });
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    window.location.href = 'chat.html';
-  }
+showSignupBtn.addEventListener('click', () => {
+  loginForm.classList.add('hidden');
+  signupForm.classList.remove('hidden');
+});
+
+showLoginBtn.addEventListener('click', () => {
+  signupForm.classList.add('hidden');
+  loginForm.classList.remove('hidden');
 });
 
 loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
-
-  const email = emailInput.value.trim();
+  const username = document.getElementById('email').value;
   const password = passwordInput.value;
+  const email = usernameToEmail(username);
 
-  statusMessage.classList.remove('error');
-  statusMessage.textContent = 'Signing in...';
+  showStatus(statusMessage, 'Signing in...');
+  isSubmitting = true;
 
   try {
-    await setPersistence(auth, browserLocalPersistence);
-    await signInWithEmailAndPassword(auth, email, password);
-    statusMessage.textContent = 'Signed in.';
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+    await ensureProfileAfterLogin(credential.user);
+    showStatus(statusMessage, 'Signed in. Opening...');
     window.location.href = 'chat.html';
   } catch (error) {
-    statusMessage.classList.add('error');
-
-    if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
-      statusMessage.textContent = 'Invalid email or password.';
-    } else if (error.code === 'auth/user-not-found') {
-      statusMessage.textContent = 'Account not found.';
-    } else if (error.code === 'auth/too-many-requests') {
-      statusMessage.textContent = 'Too many attempts. Try again later.';
-    } else {
-      statusMessage.textContent = 'Unable to sign in. Please try again.';
-    }
+    console.error(error);
+    showStatus(statusMessage, firebaseMessage(error), true);
+    isSubmitting = false;
   }
+});
+
+signupForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const username = cleanUsername(document.getElementById('signupUsername').value);
+  const password = document.getElementById('signupPassword').value;
+  const inviteCode = cleanUsername(document.getElementById('inviteCode').value).toUpperCase();
+
+  if (!username || username.includes('@')) {
+    showStatus(signupStatus, 'Use a simple username only.', true);
+    return;
+  }
+
+  if (!inviteCode) {
+    showStatus(signupStatus, 'Access code required.', true);
+    return;
+  }
+
+  showStatus(signupStatus, 'Checking access...');
+  isSubmitting = true;
+
+  try {
+    const inviteSnap = await get(ref(db, `invites/${inviteCode}`));
+    const invite = inviteSnap.val();
+
+    if (!invite || invite.active !== true || invite.usedBy) {
+      showStatus(signupStatus, 'Invalid or used access code.', true);
+      isSubmitting = false;
+      return;
+    }
+
+    const email = usernameToEmail(username);
+    const credential = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = credential.user.uid;
+    const displayName = username;
+
+    await set(ref(db, `users/${uid}`), {
+      displayName,
+      username,
+      email,
+      role: 'member',
+      approved: true,
+      inviteCode,
+      createdAt: serverTimestamp(),
+      lastSeen: serverTimestamp(),
+      online: true
+    });
+
+    await update(ref(db, `invites/${inviteCode}`), {
+      active: false,
+      usedBy: uid,
+      usedByName: username,
+      usedAt: serverTimestamp()
+    });
+
+    showStatus(signupStatus, 'Account created. Opening...');
+    window.location.href = 'chat.html';
+  } catch (error) {
+    console.error(error);
+    showStatus(signupStatus, firebaseMessage(error), true);
+    isSubmitting = false;
+  }
+});
+
+onAuthStateChanged(auth, (user) => {
+  if (user && !isSubmitting) window.location.href = 'chat.html';
 });

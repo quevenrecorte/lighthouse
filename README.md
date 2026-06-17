@@ -1,78 +1,75 @@
-# Lighthouse v0.5 - Realtime Chat Improvements
+# Lighthouse v0.6-v0.9
 
-Upload/replace all files in your GitHub repository named `lighthouse`.
+This version adds:
 
-Files included:
-- index.html
-- chat.html
-- style.css
-- app.js
-- chat.js
-- README.md
+- v0.6 read receipts / seen status
+- v0.7 edit and delete messages
+- v0.8 roles and admin tools
+- v0.9 access-code account creation
+- admin clear chat
+- admin export chat
 
-## What is new in v0.5
+## Important upload order
 
-- Real-time chat still uses Firebase Realtime Database
-- Own messages are aligned to the right
-- Other messages are aligned to the left
-- Auto-scrolls to the newest message
-- Press Enter to send messages
-- Display name editor
-- Online users list
-- Presence updates when users sign in/out
+1. Upload/replace all files in the `lighthouse` GitHub repository.
+2. Open `https://quevenrecorte.github.io/lighthouse/`.
+3. Sign in first using the main admin account: `quevenrecorte@gmail.com`.
+4. Confirm you can see the Admin panel.
+5. After that, paste the database rules below.
+
+This order is important because the app marks the first admin account as approved/admin.
 
 ## Realtime Database Rules
 
-Paste these into Firebase Console > Realtime Database > Rules, then Publish.
+Firebase Console → Build → Realtime Database → Rules
+
+Paste this:
 
 ```json
 {
   "rules": {
+    ".read": false,
+    ".write": false,
+
     "users": {
-      ".read": "auth != null",
+      ".read": "auth != null && root.child('users').child(auth.uid).child('approved').val() === true",
       "$uid": {
-        ".write": "auth != null && auth.uid === $uid",
-        "displayName": {
-          ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30"
-        },
-        "email": {
-          ".validate": "newData.isString()"
-        },
-        "online": {
-          ".validate": "newData.isBoolean()"
-        },
-        "createdAt": {
-          ".validate": "newData.isNumber()"
-        },
-        "lastSeen": {
-          ".validate": "newData.isNumber()"
-        },
-        "$other": {
-          ".validate": false
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth.uid === $uid && ((!data.exists() && root.child('invites').child(newData.child('inviteCode').val()).child('active').val() === true) || data.child('approved').val() === true)))"
+      }
+    },
+
+    "rooms": {
+      "main": {
+        "messages": {
+          ".read": "auth != null && root.child('users').child(auth.uid).child('approved').val() === true",
+          "$messageId": {
+            ".write": "auth != null && root.child('users').child(auth.uid).child('approved').val() === true && (!data.exists() || data.child('uid').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+            ".validate": "!newData.exists() || (newData.hasChildren(['text', 'uid', 'name', 'createdAt']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 500 && newData.child('uid').isString())"
+          }
         }
       }
     },
-    "rooms": {
-      "$roomId": {
-        "messages": {
-          ".read": "auth != null",
-          ".write": "auth != null",
-          "$messageId": {
-            ".validate": "newData.hasChildren(['text', 'uid', 'name', 'createdAt']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 500 && newData.child('uid').val() === auth.uid && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 30 && newData.child('createdAt').isNumber()"
-          }
-        }
+
+    "invites": {
+      "$code": {
+        ".read": true,
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (!data.child('usedBy').exists() && newData.child('usedBy').val() === auth.uid))"
       }
     }
   }
 }
 ```
 
-## Test
+## How to add family members
 
-1. Upload all files.
-2. Wait for GitHub Pages to update.
-3. Open https://quevenrecorte.github.io/lighthouse/
-4. Sign in.
-5. Change your display name to Louie or Boss.
-6. Send a message.
-7. Open the same site in another browser/device to test real-time messages and online status.
+1. Sign in as admin.
+2. Click `Create Access Code`.
+3. Copy the code.
+4. Give the code to the family member privately.
+5. They click `Create access`, choose a username/password, and enter the code.
+
+## Notes
+
+- Existing old test messages can be cleared using Admin → Clear Chat.
+- Use Export Chat before clearing if you want a backup.
+- The current first admin email is set inside the code as `quevenrecorte@gmail.com`.

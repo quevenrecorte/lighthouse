@@ -21,8 +21,8 @@
       <h1>Lighthouse</h1>
 
       <form id="loginForm" class="login-form">
-        <label for="email">Email</label>
-        <input id="email" name="email" type="email" placeholder="Enter email" autocomplete="email" required />
+        <label for="email">Username</label>
+        <input id="email" name="email" type="text" placeholder="Enter username" autocomplete="username" required />
 
         <label for="password">Password</label>
         <div class="password-row">
@@ -31,7 +31,23 @@
         </div>
 
         <button class="signin-btn" type="submit">Sign In</button>
+        <button class="plain-link" id="showSignupBtn" type="button">Create access</button>
         <p id="statusMessage" class="status-message" role="status"></p>
+      </form>
+
+      <form id="signupForm" class="login-form signup-form hidden">
+        <label for="signupUsername">Username</label>
+        <input id="signupUsername" type="text" placeholder="Choose username" autocomplete="username" />
+
+        <label for="signupPassword">Password</label>
+        <input id="signupPassword" type="password" placeholder="Create password" autocomplete="new-password" />
+
+        <label for="inviteCode">Access Code</label>
+        <input id="inviteCode" type="text" placeholder="Enter access code" autocomplete="off" />
+
+        <button class="signin-btn" type="submit">Create Account</button>
+        <button class="plain-link" id="showLoginBtn" type="button">Back to sign in</button>
+        <p id="signupStatus" class="status-message" role="status"></p>
       </form>
     </section>
   </main>
