@@ -1,20 +1,44 @@
-# Lighthouse v0.2 Firebase Auth
+# Lighthouse v0.4 - Realtime Database Chat
 
-Files included:
+Upload/replace all files in the lighthouse GitHub repository.
+
+Files:
 - index.html
 - style.css
 - app.js
 - chat.html
 - chat.js
+- README.md
 
-Setup:
-1. Upload/replace these files in the `lighthouse` GitHub repository.
-2. Firebase Authentication must have Email/Password enabled.
-3. Create at least one Firebase user in Authentication > Users.
-4. Open https://quevenrecorte.github.io/lighthouse/
-5. Sign in using the Firebase user email and password.
+## Firebase Realtime Database Rules
 
-Notes:
-- This version tests Firebase login only.
-- After successful login, the site opens chat.html.
-- The real-time chat room will be added in the next version.
+Firebase Console → Build → Realtime Database → Rules
+
+Paste these rules:
+
+```json
+{
+  "rules": {
+    "rooms": {
+      "$roomId": {
+        "messages": {
+          ".read": "auth != null",
+          ".write": "auth != null",
+          "$messageId": {
+            ".validate": "newData.hasChildren(['text', 'uid', 'name', 'createdAt']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 500 && newData.child('uid').val() === auth.uid"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## Test
+
+1. Go to https://quevenrecorte.github.io/lighthouse/
+2. Sign in with the Firebase Auth account.
+3. Send a message.
+4. Open the site in another browser/device and sign in to see real-time updates.
+
+Note: This version requires Firebase Authentication Email/Password to be enabled.

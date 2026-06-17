@@ -6,27 +6,27 @@
   <title>Lighthouse</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="page-shell">
-    <section class="portal-card dashboard-card" aria-label="Lighthouse Dashboard">
-      <div class="brand-mark small-mark" aria-hidden="true">
-        <span class="beam beam-one"></span>
-        <span class="beam beam-two"></span>
-        <span class="tower"></span>
-      </div>
+  <main class="chat-shell">
+    <section class="chat-card" aria-label="Lighthouse Messages">
+      <header class="chat-header">
+        <div>
+          <h1>Lighthouse</h1>
+          <p id="userLabel" class="signed-in-text">Checking session...</p>
+        </div>
+        <button id="signOutBtn" class="small-btn" type="button">Sign Out</button>
+      </header>
 
-      <h1>Lighthouse</h1>
-      <p class="status-message" id="userStatus">Checking access...</p>
+      <section id="messages" class="messages" aria-live="polite"></section>
 
-      <div class="dashboard-panel">
-        <h2>Messages</h2>
-        <p>Login is working. Chat room will be added next.</p>
-      </div>
-
-      <button class="signin-btn" id="logoutButton" type="button">Sign Out</button>
+      <form id="messageForm" class="message-form">
+        <input id="messageInput" type="text" placeholder="Write a message..." autocomplete="off" maxlength="500" required />
+        <button type="submit">Send</button>
+      </form>
+      <p id="chatStatus" class="status-message" role="status"></p>
     </section>
   </main>
 
