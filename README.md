@@ -1,6 +1,6 @@
-# Lighthouse v0.6-v0.9
+# Lighthouse v0.6-v0.9 Fixed
 
-This version adds:
+This version adds the previous features plus fixes for sign-out and admin visibility:
 
 - v0.6 read receipts / seen status
 - v0.7 edit and delete messages
@@ -34,7 +34,8 @@ Paste this:
     "users": {
       ".read": "auth != null && root.child('users').child(auth.uid).child('approved').val() === true",
       "$uid": {
-        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth.uid === $uid && ((!data.exists() && root.child('invites').child(newData.child('inviteCode').val()).child('active').val() === true) || data.child('approved').val() === true)))"
+        ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || (auth.uid === $uid && ((!data.exists() && root.child('invites').child(newData.child('inviteCode').val()).child('active').val() === true) || data.child('approved').val() === true)))",
+        ".validate": "newData.hasChildren(['displayName', 'username', 'email', 'role', 'approved']) && newData.child('displayName').isString() && newData.child('displayName').val().length > 0 && newData.child('displayName').val().length <= 30 && newData.child('username').isString() && newData.child('role').isString() && (root.child('users').child(auth.uid).child('role').val() === 'admin' || ((!data.exists() && newData.child('role').val() === 'member' && newData.child('approved').val() === true) || (data.exists() && newData.child('role').val() === data.child('role').val() && newData.child('approved').val() === data.child('approved').val())))"
       }
     },
 
@@ -44,7 +45,7 @@ Paste this:
           ".read": "auth != null && root.child('users').child(auth.uid).child('approved').val() === true",
           "$messageId": {
             ".write": "auth != null && root.child('users').child(auth.uid).child('approved').val() === true && (!data.exists() || data.child('uid').val() === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
-            ".validate": "!newData.exists() || (newData.hasChildren(['text', 'uid', 'name', 'createdAt']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 500 && newData.child('uid').isString())"
+            ".validate": "!newData.exists() || (newData.hasChildren(['text', 'uid', 'name', 'createdAt']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 500 && newData.child('uid').val() === auth.uid)"
           }
         }
       }

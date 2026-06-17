@@ -91,7 +91,7 @@ function setStatus(message = '', isError = false) {
 }
 
 function isProfileAdmin(profile) {
-  return profile && profile.role === 'admin';
+  return profile && profile.approved === true && profile.role === 'admin';
 }
 
 async function ensureUserProfile(user) {
@@ -258,7 +258,11 @@ function startMessageListener() {
 }
 
 function renderMemberList() {
-  if (!isAdmin || !memberList) return;
+  if (!memberList) return;
+  if (!isAdmin) {
+    memberList.innerHTML = '';
+    return;
+  }
   memberList.innerHTML = '';
 
   const entries = Object.entries(allUsers).sort(([, a], [, b]) => String(a.displayName || '').localeCompare(String(b.displayName || '')));
@@ -297,6 +301,10 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   currentUser = user;
+  isAdmin = false;
+  adminPanel.classList.add('hidden');
+  memberList.innerHTML = '';
+  inviteResult.innerHTML = '';
   userLabel.textContent = 'Loading profile...';
 
   try {
@@ -471,16 +479,23 @@ exportChatBtn.addEventListener('click', () => {
 });
 
 signOutBtn.addEventListener('click', async () => {
+  signOutBtn.disabled = true;
+
   try {
-    if (currentUser) await update(ref(db, `users/${currentUser.uid}`), { online: false, lastSeen: serverTimestamp() });
     if (unsubscribeMessages) unsubscribeMessages();
     if (unsubscribeOnline) unsubscribeOnline();
     if (unsubscribeProfile) unsubscribeProfile();
     if (unsubscribeUsers) unsubscribeUsers();
+
+    if (currentUser) {
+      try {
+        await update(ref(db, `users/${currentUser.uid}`), { online: false, lastSeen: serverTimestamp() });
+      } catch (presenceError) {
+        console.warn('Presence update skipped during sign out.', presenceError);
+      }
+    }
+  } finally {
     await signOut(auth);
-    window.location.href = 'index.html';
-  } catch (error) {
-    console.error(error);
-    window.location.href = 'index.html';
+    window.location.replace('index.html');
   }
 });
