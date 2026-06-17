@@ -31,7 +31,23 @@
         </div>
 
         <button class="signin-btn" type="submit">Sign In</button>
+        <button type="button" id="showSignupBtn" class="plain-link">Use access code</button>
         <p id="statusMessage" class="status-message" role="status"></p>
+      </form>
+
+      <form id="signupForm" class="login-form signup-form hidden">
+        <label for="signupUsername">Username</label>
+        <input id="signupUsername" name="signupUsername" type="text" placeholder="Choose username" autocomplete="username" required />
+
+        <label for="signupPassword">Password</label>
+        <input id="signupPassword" name="signupPassword" type="password" placeholder="Create password" autocomplete="new-password" required />
+
+        <label for="inviteCode">Access Code</label>
+        <input id="inviteCode" name="inviteCode" type="text" placeholder="Enter access code" autocomplete="off" required />
+
+        <button class="signin-btn" type="submit">Create Account</button>
+        <button type="button" id="showLoginBtn" class="plain-link">Back to sign in</button>
+        <p id="signupStatus" class="status-message" role="status"></p>
       </form>
     </section>
   </main>

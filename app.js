@@ -41,6 +41,11 @@ const showSignupBtn = document.getElementById('showSignupBtn');
 const showLoginBtn = document.getElementById('showLoginBtn');
 let isSubmitting = false;
 
+// Never keep email/password query parameters in the browser address bar.
+if (window.location.search) {
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+
 function cleanUsername(value) {
   return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
 }
@@ -105,23 +110,23 @@ async function ensureProfileAfterLogin(user) {
   await update(userRef, updates);
 }
 
-togglePassword.addEventListener('click', () => {
+if (togglePassword && passwordInput) togglePassword.addEventListener('click', () => {
   const isPassword = passwordInput.type === 'password';
   passwordInput.type = isPassword ? 'text' : 'password';
   togglePassword.textContent = isPassword ? 'Hide' : 'Show';
 });
 
-showSignupBtn.addEventListener('click', () => {
+if (showSignupBtn && signupForm) showSignupBtn.addEventListener('click', () => {
   loginForm.classList.add('hidden');
   signupForm.classList.remove('hidden');
 });
 
-showLoginBtn.addEventListener('click', () => {
+if (showLoginBtn && signupForm) showLoginBtn.addEventListener('click', () => {
   signupForm.classList.add('hidden');
   loginForm.classList.remove('hidden');
 });
 
-loginForm.addEventListener('submit', async (event) => {
+if (loginForm) loginForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const username = document.getElementById('email').value;
   const password = passwordInput.value;
@@ -142,7 +147,7 @@ loginForm.addEventListener('submit', async (event) => {
   }
 });
 
-signupForm.addEventListener('submit', async (event) => {
+if (signupForm) signupForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const username = cleanUsername(document.getElementById('signupUsername').value);
   const password = document.getElementById('signupPassword').value;
