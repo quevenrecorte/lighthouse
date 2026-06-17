@@ -159,6 +159,9 @@ function listenToUsers() {
     allUsers = snapshot.val() || {};
     renderOnlineUsers();
     renderMemberList();
+  }, (error) => {
+    console.error('Users listener failed:', error);
+    setStatus('Some account tools are blocked by rules.', true);
   });
 }
 
@@ -191,8 +194,17 @@ function seenText(message) {
   return `Seen by ${names.length} people`;
 }
 
+const seenWriteCache = new Set();
+
 async function markMessageSeen(id, message) {
   if (!currentUser || !id || !message || message.uid === currentUser.uid) return;
+
+  // Prevent infinite listener loops:
+  // once this user is already recorded in seenBy, do not write again.
+  if (message.seenBy && message.seenBy[currentUser.uid]) return;
+  if (seenWriteCache.has(id)) return;
+
+  seenWriteCache.add(id);
   try {
     await update(ref(db, `rooms/main/messages/${id}/seenBy/${currentUser.uid}`), {
       name: userDisplayName,
@@ -200,6 +212,7 @@ async function markMessageSeen(id, message) {
     });
   } catch (error) {
     console.warn('Seen marker not saved.', error);
+    seenWriteCache.delete(id);
   }
 }
 
@@ -480,6 +493,7 @@ exportChatBtn.addEventListener('click', () => {
 
 signOutBtn.addEventListener('click', async () => {
   signOutBtn.disabled = true;
+  signOutBtn.textContent = 'Signing out...';
 
   try {
     if (unsubscribeMessages) unsubscribeMessages();
@@ -497,5 +511,10 @@ signOutBtn.addEventListener('click', async () => {
   } finally {
     await signOut(auth);
     window.location.replace('index.html');
+  } catch (error) {
+    console.error(error);
+    signOutBtn.disabled = false;
+    signOutBtn.textContent = 'Sign Out';
+    setStatus('Sign out failed. Please refresh and try again.', true);
   }
 });

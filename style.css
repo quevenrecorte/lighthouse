@@ -34,6 +34,7 @@ body::before {
   background-size: 44px 44px;
   mask-image: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
   pointer-events: none;
+  z-index: 0;
 }
 
 .page-shell, .chat-shell {
@@ -44,6 +45,9 @@ body::before {
 }
 
 .portal-card, .chat-card {
+  position: relative;
+  z-index: 2;
+  pointer-events: auto;
   width: min(100%, 430px);
   padding: 38px;
   border: 1px solid var(--card-border);
@@ -128,6 +132,16 @@ input {
 }
 
 input::placeholder { color: rgba(238, 248, 247, 0.45); }
+
+
+button, input, select, textarea, a {
+  position: relative;
+  z-index: 3;
+}
+
+button {
+  touch-action: manipulation;
+}
 
 input:focus {
   border-color: rgba(143, 216, 199, 0.85);
