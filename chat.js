@@ -7,11 +7,16 @@ import {
 import {
   getDatabase,
   ref,
+  child,
+  get,
+  set,
+  update,
   push,
   onValue,
   query,
   limitToLast,
-  serverTimestamp
+  serverTimestamp,
+  onDisconnect
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -34,19 +39,28 @@ const messagesEl = document.getElementById('messages');
 const messageForm = document.getElementById('messageForm');
 const messageInput = document.getElementById('messageInput');
 const chatStatus = document.getElementById('chatStatus');
+const profileForm = document.getElementById('profileForm');
+const displayNameInput = document.getElementById('displayNameInput');
+const onlineList = document.getElementById('onlineList');
 
 let currentUser = null;
 let userDisplayName = 'User';
 let unsubscribeMessages = null;
+let unsubscribeOnline = null;
+let unsubscribeProfile = null;
 
-function getDisplayName(user) {
+function defaultName(user) {
   if (user.displayName) return user.displayName;
   if (user.email) return user.email.split('@')[0];
   return 'User';
 }
 
+function cleanName(value) {
+  return (value || '').trim().replace(/\s+/g, ' ').slice(0, 30);
+}
+
 function formatTime(timestamp) {
-  if (!timestamp) return '';
+  if (!timestamp) return 'Sending...';
   const date = new Date(timestamp);
   return date.toLocaleString([], {
     month: 'short',
@@ -62,6 +76,92 @@ function escapeText(value) {
   return div.innerHTML;
 }
 
+async function ensureUserProfile(user) {
+  const userRef = ref(db, `users/${user.uid}`);
+  const snapshot = await get(userRef);
+  const fallbackName = defaultName(user);
+
+  if (!snapshot.exists()) {
+    await set(userRef, {
+      displayName: fallbackName,
+      email: user.email || '',
+      createdAt: serverTimestamp(),
+      lastSeen: serverTimestamp(),
+      online: true
+    });
+    return fallbackName;
+  }
+
+  const profile = snapshot.val() || {};
+  const name = cleanName(profile.displayName) || fallbackName;
+
+  await update(userRef, {
+    displayName: name,
+    email: user.email || '',
+    lastSeen: serverTimestamp(),
+    online: true
+  });
+
+  return name;
+}
+
+function setupPresence(user) {
+  const connectedRef = ref(db, '.info/connected');
+  const userRef = ref(db, `users/${user.uid}`);
+
+  onValue(connectedRef, (snapshot) => {
+    if (snapshot.val() === true) {
+      update(userRef, {
+        online: true,
+        lastSeen: serverTimestamp()
+      });
+
+      onDisconnect(userRef).update({
+        online: false,
+        lastSeen: serverTimestamp()
+      });
+    }
+  });
+}
+
+function listenToProfile(user) {
+  const userRef = ref(db, `users/${user.uid}`);
+  unsubscribeProfile = onValue(userRef, (snapshot) => {
+    const profile = snapshot.val() || {};
+    userDisplayName = cleanName(profile.displayName) || defaultName(user);
+    userLabel.textContent = `Signed in as ${userDisplayName}`;
+    displayNameInput.value = userDisplayName;
+  });
+}
+
+function listenToOnlineUsers() {
+  unsubscribeOnline = onValue(ref(db, 'users'), (snapshot) => {
+    const data = snapshot.val();
+    onlineList.innerHTML = '';
+
+    if (!data) {
+      onlineList.textContent = 'No online users.';
+      return;
+    }
+
+    const onlineUsers = Object.values(data)
+      .filter(user => user && user.online)
+      .sort((a, b) => String(a.displayName || '').localeCompare(String(b.displayName || '')));
+
+    if (onlineUsers.length === 0) {
+      onlineList.textContent = 'No online users.';
+      return;
+    }
+
+    onlineUsers.forEach((user) => {
+      const person = document.createElement('span');
+      person.className = 'online-person';
+      person.innerHTML = `<span class="online-dot"></span>${escapeText(cleanName(user.displayName) || 'User')}`;
+      onlineList.appendChild(person);
+    });
+  });
+}
+
 function renderMessages(snapshot) {
   const data = snapshot.val();
   messagesEl.innerHTML = '';
@@ -72,8 +172,9 @@ function renderMessages(snapshot) {
   }
 
   Object.entries(data).forEach(([id, message]) => {
+    const isOwn = currentUser && message.uid === currentUser.uid;
     const messageDiv = document.createElement('article');
-    messageDiv.className = message.uid === currentUser.uid ? 'message own' : 'message';
+    messageDiv.className = isOwn ? 'message own' : 'message';
 
     messageDiv.innerHTML = `
       <div class="message-meta">
@@ -98,16 +199,60 @@ function startMessageListener() {
   });
 }
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
     window.location.href = 'index.html';
     return;
   }
 
   currentUser = user;
-  userDisplayName = getDisplayName(user);
-  userLabel.textContent = `Signed in as ${userDisplayName}`;
-  startMessageListener();
+  userLabel.textContent = 'Loading profile...';
+
+  try {
+    userDisplayName = await ensureUserProfile(user);
+    userLabel.textContent = `Signed in as ${userDisplayName}`;
+    displayNameInput.value = userDisplayName;
+
+    setupPresence(user);
+    listenToProfile(user);
+    listenToOnlineUsers();
+    startMessageListener();
+  } catch (error) {
+    chatStatus.classList.add('error');
+    chatStatus.textContent = 'Unable to load profile. Check database rules.';
+    console.error(error);
+  }
+});
+
+profileForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (!currentUser) return;
+
+  const newName = cleanName(displayNameInput.value);
+  if (!newName) {
+    chatStatus.classList.add('error');
+    chatStatus.textContent = 'Display name cannot be empty.';
+    return;
+  }
+
+  try {
+    await update(ref(db, `users/${currentUser.uid}`), {
+      displayName: newName,
+      lastSeen: serverTimestamp()
+    });
+
+    userDisplayName = newName;
+    chatStatus.classList.remove('error');
+    chatStatus.textContent = 'Display name saved.';
+
+    setTimeout(() => {
+      if (chatStatus.textContent === 'Display name saved.') chatStatus.textContent = '';
+    }, 1200);
+  } catch (error) {
+    chatStatus.classList.add('error');
+    chatStatus.textContent = 'Display name not saved. Check database rules.';
+    console.error(error);
+  }
 });
 
 messageForm.addEventListener('submit', async (event) => {
@@ -129,6 +274,7 @@ messageForm.addEventListener('submit', async (event) => {
     });
 
     messageInput.value = '';
+    messageInput.focus();
     chatStatus.textContent = '';
   } catch (error) {
     chatStatus.classList.add('error');
@@ -138,7 +284,22 @@ messageForm.addEventListener('submit', async (event) => {
 });
 
 signOutBtn.addEventListener('click', async () => {
-  if (unsubscribeMessages) unsubscribeMessages();
-  await signOut(auth);
-  window.location.href = 'index.html';
+  try {
+    if (currentUser) {
+      await update(ref(db, `users/${currentUser.uid}`), {
+        online: false,
+        lastSeen: serverTimestamp()
+      });
+    }
+
+    if (unsubscribeMessages) unsubscribeMessages();
+    if (unsubscribeOnline) unsubscribeOnline();
+    if (unsubscribeProfile) unsubscribeProfile();
+
+    await signOut(auth);
+    window.location.href = 'index.html';
+  } catch (error) {
+    console.error(error);
+    window.location.href = 'index.html';
+  }
 });

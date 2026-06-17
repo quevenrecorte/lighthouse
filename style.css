@@ -250,3 +250,115 @@ input:focus {
   .message-form { grid-template-columns: 1fr; }
   .message { max-width: 100%; }
 }
+
+/* v0.5 profile, presence, and polished bubbles */
+.profile-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(180px, 0.8fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.profile-form,
+.online-panel {
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  background: rgba(4, 14, 17, 0.28);
+}
+
+.profile-form label,
+.online-title {
+  display: block;
+  margin-bottom: 9px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.profile-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.profile-row input {
+  height: 44px;
+}
+
+.profile-row button {
+  min-width: 76px;
+  border: 0;
+  border-radius: 14px;
+  color: #05201a;
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.online-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.online-person {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border: 1px solid rgba(143, 216, 199, 0.18);
+  border-radius: 999px;
+  background: rgba(143, 216, 199, 0.10);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 14px var(--accent);
+}
+
+.message {
+  margin-right: auto;
+}
+
+.message.own {
+  margin-left: auto;
+  margin-right: 0;
+  text-align: right;
+}
+
+.message.own .message-meta {
+  flex-direction: row-reverse;
+}
+
+.message.own .message-text {
+  text-align: right;
+}
+
+.message.pending {
+  opacity: 0.7;
+}
+
+@media (max-width: 700px) {
+  .profile-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-row {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-row button {
+    height: 44px;
+  }
+}

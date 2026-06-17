@@ -20,6 +20,20 @@
         <button id="signOutBtn" class="small-btn" type="button">Sign Out</button>
       </header>
 
+      <section class="profile-panel" aria-label="Profile and online status">
+        <form id="profileForm" class="profile-form">
+          <label for="displayNameInput">Display name</label>
+          <div class="profile-row">
+            <input id="displayNameInput" type="text" placeholder="Your name" maxlength="30" autocomplete="name" />
+            <button type="submit">Save</button>
+          </div>
+        </form>
+        <div class="online-panel">
+          <div class="online-title">Online</div>
+          <div id="onlineList" class="online-list">Checking...</div>
+        </div>
+      </section>
+
       <section id="messages" class="messages" aria-live="polite"></section>
 
       <form id="messageForm" class="message-form">
