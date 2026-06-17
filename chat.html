@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lighthouse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="page-shell">
+    <section class="portal-card dashboard-card" aria-label="Lighthouse Dashboard">
+      <div class="brand-mark small-mark" aria-hidden="true">
+        <span class="beam beam-one"></span>
+        <span class="beam beam-two"></span>
+        <span class="tower"></span>
+      </div>
+
+      <h1>Lighthouse</h1>
+      <p class="status-message" id="userStatus">Checking access...</p>
+
+      <div class="dashboard-panel">
+        <h2>Messages</h2>
+        <p>Login is working. Chat room will be added next.</p>
+      </div>
+
+      <button class="signin-btn" id="logoutButton" type="button">Sign Out</button>
+    </section>
+  </main>
+
+  <script type="module" src="chat.js"></script>
+</body>
+</html>

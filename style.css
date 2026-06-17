@@ -235,3 +235,39 @@ input:focus {
     height: 46px;
   }
 }
+
+.signin-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+  transform: none;
+}
+
+.dashboard-card {
+  text-align: center;
+}
+
+.small-mark {
+  width: 68px;
+  height: 68px;
+  margin-bottom: 20px;
+}
+
+.dashboard-panel {
+  margin: 28px 0 8px;
+  padding: 22px;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 20px;
+  background: rgba(4, 14, 17, 0.34);
+  text-align: left;
+}
+
+.dashboard-panel h2 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+}
+
+.dashboard-panel p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
