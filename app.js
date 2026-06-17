@@ -193,19 +193,15 @@ if (signupForm) signupForm.addEventListener('submit', async (event) => {
       online: true
     });
 
-    try {
-  await update(ref(db, `invites/${inviteCode}`), {
-    active: false,
-    usedBy: uid,
-    usedByName: username,
-    usedAt: serverTimestamp()
-  });
-} catch (e) {
-  console.warn('Invite update skipped:', e);
-});
+    await update(ref(db, `invites/${inviteCode}`), {
+      active: false,
+      usedBy: uid,
+      usedByName: username,
+      usedAt: serverTimestamp()
+    });
 
     showStatus(signupStatus, 'Account created. Opening...');
-window.location.href = 'chat.html';
+    window.location.href = 'chat.html';
   } catch (error) {
     console.error(error);
     showStatus(signupStatus, firebaseMessage(error), true);
