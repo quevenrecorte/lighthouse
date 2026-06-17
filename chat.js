@@ -508,7 +508,7 @@ signOutBtn.addEventListener('click', async () => {
         console.warn('Presence update skipped during sign out.', presenceError);
       }
     }
-  } finally {
+
     await signOut(auth);
     window.location.replace('index.html');
   } catch (error) {
