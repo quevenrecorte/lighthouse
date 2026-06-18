@@ -38,6 +38,8 @@ const messagesEl = document.getElementById('messages');
 const messageForm = document.getElementById('messageForm');
 const messageInput = document.getElementById('messageInput');
 const chatStatus = document.getElementById('chatStatus');
+const fileInput = document.getElementById('fileInput');
+const attachBtn = document.getElementById('attachBtn');
 const profileForm = document.getElementById('profileForm');
 const displayNameInput = document.getElementById('displayNameInput');
 const onlineList = document.getElementById('onlineList');
@@ -58,6 +60,7 @@ let unsubscribeMessages = null;
 let unsubscribeOnline = null;
 let unsubscribeProfile = null;
 let unsubscribeUsers = null;
+let selectedFile = null;
 
 function defaultName(user) {
   if (user.displayName) return user.displayName;
@@ -88,6 +91,41 @@ function escapeText(value) {
 function setStatus(message = '', isError = false) {
   chatStatus.classList.toggle('error', isError);
   chatStatus.textContent = message;
+}
+
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxWidth = 1280;
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.75));
+      };
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 function isProfileAdmin(profile) {
@@ -243,7 +281,9 @@ function renderMessages(snapshot) {
         <span>${escapeText(message.name || 'User')}</span>
         <span>${formatTime(message.createdAt)}</span>
       </div>
-      <p class="message-text">${escapeText(message.text)}</p>
+      <p class="message-text">${escapeText(message.text || '')}</p>
+      ${message.fileType === 'image' ? `<img src="${message.fileData}" class="chat-image">` : ''}
+      ${message.fileType === 'file' ? `<div class="file-box"><a href="${message.fileData}" download="${message.fileName}">📄 ${message.fileName}</a></div>` : ''}
       <div class="message-footer">
         <span>${edited}</span>
         <span>${escapeText(seen)}</span>
@@ -345,6 +385,13 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
+
+attachBtn?.addEventListener('click', ()=> fileInput.click());
+fileInput?.addEventListener('change', (event) => {
+  selectedFile = event.target.files[0];
+  if (selectedFile) setStatus(`Selected: ${selectedFile.name}`);
+});
+
 profileForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   if (!currentUser) return;
@@ -369,11 +416,11 @@ profileForm.addEventListener('submit', async (event) => {
 messageForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   const text = cleanMessage(messageInput.value);
-  if (!text || !currentUser) return;
+  if ((!text && !selectedFile) || !currentUser) return;
 
   setStatus('Sending...');
   try {
-    await push(ref(db, 'rooms/main/messages'), {
+    let payload = {
       text,
       uid: currentUser.uid,
       name: userDisplayName,
@@ -386,8 +433,23 @@ messageForm.addEventListener('submit', async (event) => {
           seenAt: serverTimestamp()
         }
       }
-    });
+    };
+    if (selectedFile) {
+      const isImage = selectedFile.type.startsWith('image/');
+      const maxSize = isImage ? 500 * 1024 : 300 * 1024;
+      if (selectedFile.size > maxSize) {
+        setStatus('File too large.', true);
+        return;
+      }
+      const fileData = isImage ? await compressImage(selectedFile) : await fileToBase64(selectedFile);
+      payload.fileName = selectedFile.name;
+      payload.fileData = fileData;
+      payload.fileType = isImage ? 'image' : 'file';
+    }
+    await push(ref(db, 'rooms/main/messages'), payload);
     messageInput.value = '';
+    selectedFile = null;
+    fileInput.value = '';
     messageInput.focus();
     setStatus('');
   } catch (error) {
