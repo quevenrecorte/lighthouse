@@ -119,7 +119,7 @@ function compressImage(file) {
         canvas.width = width;
         canvas.height = height;
         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.75));
+        resolve(canvas.toDataURL('image/jpeg', 0.60));
       };
       img.src = e.target.result;
     };
@@ -436,12 +436,31 @@ messageForm.addEventListener('submit', async (event) => {
     };
     if (selectedFile) {
       const isImage = selectedFile.type.startsWith('image/');
-      const maxSize = isImage ? 500 * 1024 : 300 * 1024;
-      if (selectedFile.size > maxSize) {
-        setStatus('File too large.', true);
-        return;
+      if (isImage) {
+        const rawLimit = 10 * 1024 * 1024;
+        if (selectedFile.size > rawLimit) {
+          setStatus('Image too large. Max raw size is 10MB.', true);
+          return;
+        }
+      } else {
+        const fileLimit = 300 * 1024;
+        if (selectedFile.size > fileLimit) {
+          setStatus('File too large.', true);
+          return;
+        }
       }
-      const fileData = isImage ? await compressImage(selectedFile) : await fileToBase64(selectedFile);
+
+      let fileData;
+      if (isImage) {
+        fileData = await compressImage(selectedFile);
+        const compressedSize = Math.round((fileData.length * 3) / 4);
+        if (compressedSize > 500 * 1024) {
+          setStatus('Compressed image still too large.', true);
+          return;
+        }
+      } else {
+        fileData = await fileToBase64(selectedFile);
+      }
       payload.fileName = selectedFile.name;
       payload.fileData = fileData;
       payload.fileType = isImage ? 'image' : 'file';
