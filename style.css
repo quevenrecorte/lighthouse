@@ -1055,3 +1055,119 @@ input:focus {
   }
 }
 
+/* v4.2.1 PC Compact Layout */
+@media (min-width: 769px) {
+
+  .chat-shell {
+    padding: 12px;
+  }
+
+  .chat-card {
+    width: min(96%, 1500px);
+    min-height: 92vh;
+    padding: 18px 24px;
+    gap: 12px;
+    border-radius: 22px;
+  }
+
+  .chat-header {
+    margin-bottom: 4px;
+    gap: 8px;
+  }
+
+  .chat-header h1 {
+    font-size: 2.3rem;
+    margin: 0;
+  }
+
+  .signed-in-text {
+    margin-top: 2px;
+    font-size: 0.92rem;
+  }
+
+  .small-btn {
+    height: 38px;
+    padding: 0 16px;
+  }
+
+  .room-sidebar {
+    padding: 8px 0;
+    gap: 8px;
+  }
+
+  .room-sidebar-header h3 {
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  .room-list {
+    gap: 8px;
+  }
+
+  .room-item {
+    padding: 10px 14px;
+    min-height: unset;
+    font-size: 0.9rem;
+  }
+
+  .messages {
+    min-height: 0;
+    height: 62vh;
+    max-height: 62vh;
+    padding: 14px;
+    margin-top: 4px;
+  }
+
+  .message-form {
+    gap: 8px;
+  }
+
+  .message-form input {
+    height: 46px;
+  }
+
+  .message-form button {
+    height: 46px;
+  }
+}
+
+/* FORCE PC horizontal room layout */
+@media (min-width: 769px) {
+
+  .chat-card {
+    display: block !important;
+  }
+
+  .chat-main {
+    width: 100%;
+  }
+
+  .room-sidebar {
+    width: 100% !important;
+    display: block !important;
+    border: none !important;
+    padding: 8px 0 14px 0 !important;
+    margin: 0 auto !important;
+  }
+
+  .room-sidebar-header {
+    display: none !important;
+  }
+
+  #roomList,
+  .room-list {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 14px !important;
+    width: 100%;
+  }
+
+  .room-item {
+    width: 180px !important;
+    max-width: 180px !important;
+    min-width: 180px !important;
+    text-align: center !important;
+  }
+}
