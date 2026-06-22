@@ -51,13 +51,40 @@
 
       <section id="messages" class="messages" aria-live="polite"></section>
 
+      <!-- Reply Preview -->
+      <div id="replyPreview" class="reply-preview hidden">
+        <div class="reply-preview-content">
+          <strong id="replySender"></strong>
+          <p id="replyText"></p>
+        </div>
+        <button id="cancelReplyBtn" type="button">✕</button>
+      </div>
+
       <form id="messageForm" class="message-form">
         <input id="messageInput" type="text" placeholder="Write a message..." autocomplete="off" maxlength="500" />
-        <input id="fileInput" type="file" hidden accept="image/png,image/jpeg,image/webp,.txt,.pdf,.doc,.docx" />
+
+        <input
+          id="fileInput"
+          type="file"
+          hidden
+          accept="image/png,image/jpeg,image/webp,.txt,.pdf,.doc,.docx"
+        />
+
         <button id="attachBtn" type="button">📎</button>
         <button type="submit">Send</button>
       </form>
+
       <p id="chatStatus" class="status-message" role="status"></p>
+
+      <!-- Reaction Picker -->
+      <div id="reactionPicker" class="reaction-picker hidden">
+        <button type="button" class="reaction-option">👍</button>
+        <button type="button" class="reaction-option">❤️</button>
+        <button type="button" class="reaction-option">😂</button>
+        <button type="button" class="reaction-option">😮</button>
+        <button type="button" class="reaction-option">😢</button>
+      </div>
+
     </section>
   </main>
 

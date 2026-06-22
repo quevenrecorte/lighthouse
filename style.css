@@ -532,3 +532,132 @@ input:focus {
 .chat-image { margin-top: 8px; max-width: 100%; border-radius: 14px; display:block; }
 .file-box { margin-top: 8px; padding:12px 14px; border-radius:14px; background: rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.10);}
 .file-box a { color: var(--accent-strong); text-decoration:none; font-weight:700;}
+
+/* Lighthouse v3.0 — Reply + Reactions */
+
+/* Reply Preview Above Input */
+.reply-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(143, 216, 199, 0.22);
+  border-radius: 16px;
+  background: rgba(143, 216, 199, 0.10);
+}
+
+.reply-preview-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.reply-preview-content strong {
+  display: block;
+  color: var(--accent-strong);
+  font-size: 0.82rem;
+  margin-bottom: 4px;
+}
+
+.reply-preview-content p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#cancelReplyBtn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 18px;
+  padding: 4px;
+}
+
+#cancelReplyBtn:hover {
+  color: var(--accent-strong);
+}
+
+/* Reply Bubble Inside Message */
+.reply-box {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  text-align: left;
+}
+
+.reply-box strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--accent-strong);
+  font-size: 0.76rem;
+}
+
+.reply-box p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+/* Reaction Picker Popup */
+.reaction-picker {
+  position: fixed;
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 999px;
+  background: rgba(4, 14, 17, 0.96);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  z-index: 9999;
+}
+
+.reaction-option {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 24px;
+  padding: 6px;
+  transition: transform 0.18s ease;
+}
+
+.reaction-option:hover {
+  transform: scale(1.18);
+}
+
+/* Reactions Under Message */
+.reactions-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.reaction-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.reaction-pill.active {
+  border-color: rgba(143, 216, 199, 0.30);
+  background: rgba(143, 216, 199, 0.14);
+}
+
+/* Reaction Button */
+.react-btn {
+  font-size: 0.8rem;
+}

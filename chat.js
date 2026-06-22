@@ -49,6 +49,11 @@ const createInviteBtn = document.getElementById('createInviteBtn');
 const exportChatBtn = document.getElementById('exportChatBtn');
 const inviteResult = document.getElementById('inviteResult');
 const memberList = document.getElementById('memberList');
+const replyPreview = document.getElementById('replyPreview');
+const replySender = document.getElementById('replySender');
+const replyText = document.getElementById('replyText');
+const cancelReplyBtn = document.getElementById('cancelReplyBtn');
+const reactionPicker = document.getElementById('reactionPicker');
 
 let currentUser = null;
 let currentProfile = null;
@@ -61,6 +66,8 @@ let unsubscribeOnline = null;
 let unsubscribeProfile = null;
 let unsubscribeUsers = null;
 let selectedFile = null;
+let replyTarget = null;
+let activeReactionMessage = null;
 
 function defaultName(user) {
   if (user.displayName) return user.displayName;
@@ -91,6 +98,83 @@ function escapeText(value) {
 function setStatus(message = '', isError = false) {
   chatStatus.classList.toggle('error', isError);
   chatStatus.textContent = message;
+}
+function truncateText(text, max = 60) {
+  if (!text) return '';
+  return text.length > max ? text.slice(0, max) + '...' : text;
+}
+
+function showReplyPreview(messageId, message) {
+  replyTarget = {
+    messageId,
+    sender: message.name || 'User',
+    text: message.text || '[Attachment]'
+  };
+
+  replySender.textContent = replyTarget.sender;
+  replyText.textContent = truncateText(replyTarget.text);
+  replyPreview.classList.remove('hidden');
+}
+
+function clearReplyPreview() {
+  replyTarget = null;
+  replyPreview.classList.add('hidden');
+}
+
+function renderReactions(message) {
+  if (!message.reactions) return '';
+
+  let html = '<div class="reactions-bar">';
+
+  Object.entries(message.reactions).forEach(([emoji, users]) => {
+    const count = Object.keys(users || {}).length;
+    if (count === 0) return;
+
+    const active = currentUser && users[currentUser.uid];
+    html += `
+      <div class="reaction-pill ${active ? 'active' : ''}">
+        ${emoji} ${count}
+      </div>
+    `;
+  });
+
+  html += '</div>';
+  return html;
+}
+
+async function toggleReaction(messageId, emoji) {
+  if (!currentUser) return;
+
+  const message = latestMessages[messageId];
+  if (!message) return;
+
+  const updates = {};
+  const reactions = message.reactions || {};
+  let clickedSameReaction = false;
+
+  Object.entries(reactions).forEach(([existingEmoji, users]) => {
+    if (users && users[currentUser.uid]) {
+      if (existingEmoji === emoji) {
+        clickedSameReaction = true;
+      }
+
+      updates[`rooms/main/messages/${messageId}/reactions/${existingEmoji}/${currentUser.uid}`] = null;
+    }
+  });
+
+  if (!clickedSameReaction) {
+    updates[`rooms/main/messages/${messageId}/reactions/${emoji}/${currentUser.uid}`] = true;
+  }
+
+  try {
+    await update(ref(db), updates);
+  } catch (error) {
+    console.error(error);
+    setStatus('Reaction failed.', true);
+  }
+
+  reactionPicker.classList.add('hidden');
+  activeReactionMessage = null;
 }
 
 
@@ -277,23 +361,48 @@ function renderMessages(snapshot) {
     const canManage = isOwn || isAdmin;
 
     messageDiv.innerHTML = `
-      <div class="message-meta">
-        <span>${escapeText(message.name || 'User')}</span>
-        <span>${formatTime(message.createdAt)}</span>
-      </div>
-      <p class="message-text">${escapeText(message.text || '')}</p>
-      ${message.fileType === 'image' ? `<img src="${message.fileData}" class="chat-image">` : ''}
-      ${message.fileType === 'file' ? `<div class="file-box"><a href="${message.fileData}" download="${message.fileName}">📄 ${message.fileName}</a></div>` : ''}
-      <div class="message-footer">
-        <span>${edited}</span>
-        <span>${escapeText(seen)}</span>
-      </div>
-      ${canManage ? `
-        <div class="message-actions">
-          ${isOwn ? '<button class="mini-action edit-message" type="button">Edit</button>' : ''}
-          <button class="mini-action delete-message" type="button">Delete</button>
-        </div>` : ''}
-    `;
+  <div class="message-meta">
+    <span>${escapeText(message.name || 'User')}</span>
+    <span>${formatTime(message.createdAt)}</span>
+  </div>
+
+  ${message.replyTo ? `
+    <div class="reply-box">
+      <strong>${escapeText(message.replyTo.sender)}</strong>
+      <p>${escapeText(message.replyTo.text)}</p>
+    </div>
+  ` : ''}
+
+  <p class="message-text">${escapeText(message.text || '')}</p>
+
+  ${message.fileType === 'image'
+    ? `<img src="${message.fileData}" class="chat-image">`
+    : ''}
+
+  ${message.fileType === 'file'
+    ? `<div class="file-box">
+         <a href="${message.fileData}" download="${message.fileName}">
+           📄 ${message.fileName}
+         </a>
+       </div>`
+    : ''}
+
+  ${renderReactions(message)}
+
+  <div class="message-footer">
+    <span>${edited}</span>
+    <span>${escapeText(seen)}</span>
+  </div>
+
+  <div class="message-actions">
+    <button class="mini-action reply-message" type="button">Reply</button>
+    <button class="mini-action react-message react-btn" type="button">🙂</button>
+
+    ${isOwn ? '<button class="mini-action edit-message" type="button">Edit</button>' : ''}
+
+    ${canManage ? '<button class="mini-action delete-message" type="button">Delete</button>' : ''}
+  </div>
+`;
 
     messagesEl.appendChild(messageDiv);
     markMessageSeen(id, message);
@@ -385,7 +494,23 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
+cancelReplyBtn?.addEventListener('click', clearReplyPreview);
+reactionPicker?.addEventListener('click', async (event) => {
+  const button = event.target.closest('.reaction-option');
+  if (!button || !activeReactionMessage) return;
 
+  const emoji = button.textContent.trim();
+  await toggleReaction(activeReactionMessage, emoji);
+});
+document.addEventListener('click', (event) => {
+  if (
+    reactionPicker &&
+    !reactionPicker.contains(event.target) &&
+    !event.target.closest('.react-message')
+  ) {
+    reactionPicker.classList.add('hidden');
+  }
+});
 attachBtn?.addEventListener('click', ()=> fileInput.click());
 fileInput?.addEventListener('change', (event) => {
   selectedFile = event.target.files[0];
@@ -421,19 +546,27 @@ messageForm.addEventListener('submit', async (event) => {
   setStatus('Sending...');
   try {
     let payload = {
-      text,
-      uid: currentUser.uid,
+  text,
+  uid: currentUser.uid,
+  name: userDisplayName,
+  email: currentUser.email || '',
+  createdAt: serverTimestamp(),
+  editedAt: null,
+  seenBy: {
+    [currentUser.uid]: {
       name: userDisplayName,
-      email: currentUser.email || '',
-      createdAt: serverTimestamp(),
-      editedAt: null,
-      seenBy: {
-        [currentUser.uid]: {
-          name: userDisplayName,
-          seenAt: serverTimestamp()
-        }
-      }
-    };
+      seenAt: serverTimestamp()
+    }
+  }
+};
+
+if (replyTarget) {
+  payload.replyTo = {
+    messageId: replyTarget.messageId,
+    sender: replyTarget.sender,
+    text: replyTarget.text
+  };
+};
     if (selectedFile) {
       const isImage = selectedFile.type.startsWith('image/');
       if (isImage) {
@@ -469,6 +602,7 @@ messageForm.addEventListener('submit', async (event) => {
     messageInput.value = '';
     selectedFile = null;
     fileInput.value = '';
+    clearReplyPreview();
     messageInput.focus();
     setStatus('');
   } catch (error) {
@@ -485,6 +619,22 @@ messagesEl.addEventListener('click', async (event) => {
   const id = messageEl.dataset.id;
   const message = latestMessages[id];
   if (!id || !message) return;
+  if (button.classList.contains('reply-message')) {
+  showReplyPreview(id, message);
+  messageInput.focus();
+  return;
+}
+
+if (button.classList.contains('react-message')) {
+  activeReactionMessage = id;
+
+  const rect = button.getBoundingClientRect();
+  reactionPicker.style.left = `${rect.left}px`;
+  reactionPicker.style.top = `${rect.top - 70}px`;
+  reactionPicker.classList.remove('hidden');
+
+  return;
+}
 
   if (button.classList.contains('edit-message')) {
     const nextText = prompt('Edit message:', message.text || '');
