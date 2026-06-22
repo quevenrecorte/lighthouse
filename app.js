@@ -188,16 +188,17 @@ if (invite.expiresAt && Date.now() > invite.expiresAt) {
     const displayName = username;
 
     await set(ref(db, `users/${uid}`), {
-      displayName,
-      username,
-      email,
-      role: 'member',
-      approved: true,
-      inviteCode,
-      createdAt: serverTimestamp(),
-      lastSeen: serverTimestamp(),
-      online: true
-    });
+  displayName,
+  username,
+  email,
+  role: 'member',
+  approved: true,
+  accountType: 'invite-registered',
+  inviteCode,
+  createdAt: serverTimestamp(),
+  lastSeen: serverTimestamp(),
+  online: true
+});
 
     /*await update(ref(db, `invites/${inviteCode}`), {
       active: false,
