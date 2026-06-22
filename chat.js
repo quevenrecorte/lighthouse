@@ -1032,7 +1032,6 @@ roomList?.addEventListener('click', (event) => {
   switchRoom(room);
 });
 
-window.switchRoom = switchRoom;
 
 accountBtn?.addEventListener('click', () => {
   accountModal.classList.remove('hidden');
