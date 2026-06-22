@@ -42,6 +42,8 @@ const infoDisplayName = document.getElementById('infoDisplayName');
 const infoEmail = document.getElementById('infoEmail');
 const infoRole = document.getElementById('infoRole');
 const infoStatus = document.getElementById('infoStatus');
+const infoCreatedDate = document.getElementById('infoCreatedDate');
+const infoLastOnline = document.getElementById('infoLastOnline');
 const toggleAccountBtn = document.getElementById('toggleAccountBtn');
 const closeAccountBtn = document.getElementById('closeAccountBtn');
 const messagesEl = document.getElementById('messages');
@@ -97,6 +99,32 @@ function formatTime(timestamp) {
   if (!timestamp) return 'Sending...';
   const date = new Date(timestamp);
   return date.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+}
+
+function formatDate(timestamp) {
+  if (!timestamp) return '-';
+
+  const date = new Date(timestamp);
+
+  return date.toLocaleDateString([], {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+}
+
+function formatLastSeen(timestamp) {
+  if (!timestamp) return '-';
+
+  const date = new Date(timestamp);
+
+  return date.toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit'
+  });
 }
 
 function escapeText(value) {
@@ -752,7 +780,14 @@ memberList.addEventListener('click', (event) => {
   infoDisplayName.textContent = user.displayName || '-';
   infoEmail.textContent = user.email || '-';
   infoRole.textContent = user.role || 'member';
-  infoStatus.textContent = user.disabled ? 'Disabled' : 'Active';
+  infoCreatedDate.textContent = formatDate(user.createdAt);
+  infoLastOnline.textContent = user.online
+  ? '🟢 Online Now'
+  : formatLastSeen(user.lastSeen);
+  infoStatus.textContent = user.disabled ? '🔴 Disabled' : '🟢 Active';
+
+  infoStatus.classList.remove('status-active', 'status-disabled');
+  infoStatus.classList.add(user.disabled ? 'status-disabled' : 'status-active');
 
   toggleAccountBtn.textContent = user.disabled
     ? 'Enable Account'
@@ -782,7 +817,10 @@ toggleAccountBtn?.addEventListener('click', async () => {
       disabled: newStatus
     });
 
-    infoStatus.textContent = newStatus ? 'Disabled' : 'Active';
+    infoStatus.textContent = newStatus ? '🔴 Disabled' : '🟢 Active';
+
+    infoStatus.classList.remove('status-active', 'status-disabled');
+    infoStatus.classList.add(newStatus ? 'status-disabled' : 'status-active');
     toggleAccountBtn.textContent = newStatus
       ? 'Enable Account'
       : 'Disable Account';
