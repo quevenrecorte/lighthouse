@@ -633,7 +633,7 @@ if (button.classList.contains('react-message')) {
   const rect = button.getBoundingClientRect();
   const cardRect = document.querySelector('.chat-card').getBoundingClientRect();
 
-  let left = rect.left - cardRect.left - 100;
+  let left = rect.left - cardRect.left - 150;
   let top = rect.top - cardRect.top - 70;
 
   reactionPicker.style.left = `${left}px`;
