@@ -617,6 +617,8 @@ input:focus {
   backdrop-filter: blur(14px);
   box-shadow: 0 12px 40px rgba(0,0,0,0.35);
   z-index: 9999;
+  max-width: calc(100vw - 24px);
+  overflow-x: auto;
 }
 
 .reaction-option {

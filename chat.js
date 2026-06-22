@@ -629,8 +629,33 @@ if (button.classList.contains('react-message')) {
   activeReactionMessage = id;
 
   const rect = button.getBoundingClientRect();
-  reactionPicker.style.left = `${rect.left}px`;
-  reactionPicker.style.top = `${rect.top - 70}px`;
+
+  const pickerWidth = 280;
+  const pickerHeight = 70;
+  const margin = 12;
+
+  let left = rect.left;
+  let top;
+
+  // Prevent overflow right
+  if (left + pickerWidth > window.innerWidth - margin) {
+    left = window.innerWidth - pickerWidth - margin;
+  }
+
+  // Prevent overflow left
+  if (left < margin) {
+    left = margin;
+  }
+
+  // Open above if possible, otherwise below
+  if (rect.top > pickerHeight + margin) {
+    top = rect.top - pickerHeight - 8;
+  } else {
+    top = rect.bottom + 8;
+  }
+
+  reactionPicker.style.left = `${left}px`;
+  reactionPicker.style.top = `${top}px`;
   reactionPicker.classList.remove('hidden');
 
   return;
