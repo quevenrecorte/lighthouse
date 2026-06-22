@@ -739,3 +739,89 @@ input:focus {
   color: #fca5a5;
   border: 1px solid rgba(239, 68, 68, 0.30);
 }
+
+.chat-card {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.room-sidebar {
+  width: 220px;
+  padding: 24px 18px;
+  border-right: 1px solid rgba(255,255,255,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: 100%;
+}
+
+.room-sidebar-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #eaf7f5;
+}
+
+.room-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.room-item {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: #d8f6ef;
+  cursor: pointer;
+  text-align: left;
+  font-weight: 600;
+}
+
+.room-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.active-room {
+  background: rgba(173, 232, 219, 0.18);
+  border: 1px solid rgba(173, 232, 219, 0.35);
+  box-shadow: 0 0 12px rgba(173, 232, 219, 0.08);
+}
+
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+
+.room-manager-box {
+  margin-bottom: 24px;
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  background: rgba(255,255,255,0.02);
+}
+
+.room-manager-box h4 {
+  margin: 0 0 14px;
+  color: #eaf7f5;
+}
+
+.room-member-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  color: #d8f6ef;
+}
+
+.room-member-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}

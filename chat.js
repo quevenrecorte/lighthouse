@@ -62,11 +62,14 @@ const createInviteBtn = document.getElementById('createInviteBtn');
 const exportChatBtn = document.getElementById('exportChatBtn');
 const inviteResult = document.getElementById('inviteResult');
 const memberList = document.getElementById('memberList');
+const roomMemberManager = document.getElementById('roomMemberManager');
 const replyPreview = document.getElementById('replyPreview');
 const replySender = document.getElementById('replySender');
 const replyText = document.getElementById('replyText');
 const cancelReplyBtn = document.getElementById('cancelReplyBtn');
 const reactionPicker = document.getElementById('reactionPicker');
+const roomList = document.getElementById('roomList');
+const roomButtons = document.querySelectorAll('.room-item');
 
 let currentUser = null;
 let currentProfile = null;
@@ -81,6 +84,8 @@ let unsubscribeUsers = null;
 let selectedFile = null;
 let replyTarget = null;
 let activeReactionMessage = null;
+let activeRoom = 'main';
+let roomMembers = {};
 
 function defaultName(user) {
   if (user.displayName) return user.displayName;
@@ -160,6 +165,7 @@ function clearReplyPreview() {
   replyPreview.classList.add('hidden');
 }
 
+
 function renderReactions(message) {
   if (!message.reactions) return '';
 
@@ -197,12 +203,12 @@ async function toggleReaction(messageId, emoji) {
         clickedSameReaction = true;
       }
 
-      updates[`rooms/main/messages/${messageId}/reactions/${existingEmoji}/${currentUser.uid}`] = null;
+      updates[`rooms/${activeRoom}/messages/${messageId}/reactions/${existingEmoji}/${currentUser.uid}`] = null;
     }
   });
 
   if (!clickedSameReaction) {
-    updates[`rooms/main/messages/${messageId}/reactions/${emoji}/${currentUser.uid}`] = true;
+    updates[`rooms/${activeRoom}/messages/${messageId}/reactions/${emoji}/${currentUser.uid}`] = true;
   }
 
   try {
@@ -321,6 +327,7 @@ function listenToUsers() {
     allUsers = snapshot.val() || {};
     renderOnlineUsers();
     renderMemberList();
+    renderRoomMemberManager();
   }, (error) => {
     console.error('Users listener failed:', error);
     setStatus('Some account tools are blocked by rules.', true);
@@ -368,7 +375,7 @@ async function markMessageSeen(id, message) {
 
   seenWriteCache.add(id);
   try {
-    await update(ref(db, `rooms/main/messages/${id}/seenBy/${currentUser.uid}`), {
+    await update(ref(db, `rooms/${activeRoom}/messages/${id}/seenBy/${currentUser.uid}`), {
       name: userDisplayName,
       seenAt: serverTimestamp()
     });
@@ -452,7 +459,7 @@ function renderMessages(snapshot) {
 }
 
 function startMessageListener() {
-  const messagesRef = query(ref(db, 'rooms/main/messages'), limitToLast(150));
+  const messagesRef = query(ref(db, `rooms/${activeRoom}/messages`), limitToLast(150));
   unsubscribeMessages = onValue(messagesRef, renderMessages, (error) => {
     setStatus('Unable to load messages. Check database rules.', true);
     console.error(error);
@@ -494,6 +501,84 @@ function renderMemberList() {
   });
 }
 
+function listenToRoomMembers() {
+  console.log("ROOM MEMBER LISTENER STARTED");
+
+  onValue(ref(db, 'rooms/family/members'), (snapshot) => {
+    roomMembers.family = snapshot.val() || {};
+    console.log("FAMILY MEMBERS:", roomMembers.family);
+    renderRoomMemberManager();
+    updateRoomVisibility();
+  });
+
+  onValue(ref(db, 'rooms/business/members'), (snapshot) => {
+    roomMembers.business = snapshot.val() || {};
+    console.log("BUSINESS MEMBERS:", roomMembers.business);
+    renderRoomMemberManager();
+    updateRoomVisibility();
+  });
+}
+
+function updateRoomVisibility() {
+  document.querySelectorAll('.room-item').forEach(button => {
+    const room = button.dataset.room;
+    if (!room) return;
+
+    if (room === 'main') {
+      button.style.display = '';
+      return;
+    }
+
+    if (isAdmin) {
+      button.style.display = '';
+      return;
+    }
+
+    const allowed = roomMembers[room]?.[currentUser.uid];
+    button.style.display = allowed ? '' : 'none';
+  });
+}
+
+function renderRoomMemberManager() {
+  if (!roomMemberManager) return;
+  if (!isAdmin) {
+    roomMemberManager.innerHTML = '';
+    return;
+  }
+
+  const users = Object.entries(allUsers);
+  if (users.length === 0) {
+    roomMemberManager.innerHTML = 'No users found.';
+    return;
+  }
+
+  let html = '';
+
+  ['family', 'business'].forEach(room => {
+    html += `
+      <div class="room-manager-box">
+        <h4>${room.charAt(0).toUpperCase() + room.slice(1)}</h4>
+    `;
+
+    users.forEach(([uid, user]) => {
+      const name = user.displayName || user.email || 'User';
+
+      const checked = roomMembers[room]?.[uid] ? 'checked' : '';
+
+html += `
+  <label class="room-member-item">
+    <input type="checkbox" data-room="${room}" data-uid="${uid}" ${checked}>
+    ${escapeText(name)}
+  </label>
+`;
+    });
+
+    html += `</div>`;
+  });
+
+  roomMemberManager.innerHTML = html;
+}
+
 function createInviteCode() {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = 'LH-';
@@ -510,6 +595,22 @@ function createPasswordResetCode() {
   }
 
   return code;
+}
+function switchRoom(roomName) {
+  if (activeRoom === roomName) return;
+
+  activeRoom = roomName;
+
+  document.querySelectorAll('.room-item').forEach(btn => {
+    btn.classList.toggle('active-room', btn.dataset.room === roomName);
+  });
+
+  latestMessages = {};
+  messagesEl.innerHTML = '<p class="empty-state">Loading messages...</p>';
+
+  if (unsubscribeMessages) unsubscribeMessages();
+
+  startMessageListener();
 }
 
 onAuthStateChanged(auth, async (user) => {
@@ -543,7 +644,9 @@ onAuthStateChanged(auth, async (user) => {
     setupPresence(user);
     listenToProfile(user);
     listenToUsers();
+    listenToRoomMembers();
     startMessageListener();
+    updateRoomVisibility();
   } catch (error) {
     setStatus('Unable to load profile. Check database rules.', true);
     console.error(error);
@@ -654,7 +757,7 @@ if (replyTarget) {
       payload.fileData = fileData;
       payload.fileType = isImage ? 'image' : 'file';
     }
-    await push(ref(db, 'rooms/main/messages'), payload);
+    await push(ref(db, `rooms/${activeRoom}/messages`), payload);
     messageInput.value = '';
     selectedFile = null;
     fileInput.value = '';
@@ -705,7 +808,7 @@ if (button.classList.contains('react-message')) {
     if (!text || text === message.text) return;
 
     try {
-      await update(ref(db, `rooms/main/messages/${id}`), {
+      await update(ref(db, `rooms/${activeRoom}/messages/${id}`), {
         text,
         name: userDisplayName,
         editedAt: serverTimestamp()
@@ -719,7 +822,7 @@ if (button.classList.contains('react-message')) {
   if (button.classList.contains('delete-message')) {
     if (!confirm('Delete this message?')) return;
     try {
-      await remove(ref(db, `rooms/main/messages/${id}`));
+      await remove(ref(db, `rooms/${activeRoom}/messages/${id}`));
     } catch (error) {
       setStatus('Message not deleted. Check database rules.', true);
       console.error(error);
@@ -739,6 +842,37 @@ memberList.addEventListener('change', async (event) => {
     setTimeout(() => { if (chatStatus.textContent === 'Role updated.') setStatus(''); }, 1200);
   } catch (error) {
     setStatus('Role not updated. Check database rules.', true);
+    console.error(error);
+  }
+});
+
+roomMemberManager?.addEventListener('change', async (event) => {
+  const checkbox = event.target;
+  if (!checkbox.matches('input[type="checkbox"]')) return;
+  if (!isAdmin) return;
+
+  const room = checkbox.dataset.room;
+  const uid = checkbox.dataset.uid;
+
+  if (!room || !uid) return;
+
+  try {
+    if (checkbox.checked) {
+      await set(ref(db, `rooms/${room}/members/${uid}`), true);
+    } else {
+      await remove(ref(db, `rooms/${room}/members/${uid}`));
+    }
+
+    setStatus('Room membership updated.');
+    setTimeout(() => {
+      if (chatStatus.textContent === 'Room membership updated.') {
+        setStatus('');
+      }
+    }, 1200);
+
+  } catch (error) {
+    checkbox.checked = !checkbox.checked;
+    setStatus('Room membership update failed.', true);
     console.error(error);
   }
 });
@@ -846,7 +980,7 @@ clearChatBtn.addEventListener('click', async () => {
   if (!isAdmin) return;
   if (!confirm('Clear all chat messages? This cannot be undone.')) return;
   try {
-    await remove(ref(db, 'rooms/main/messages'));
+    await remove(ref(db, `rooms/${activeRoom}/messages`));
     setStatus('Chat cleared.');
   } catch (error) {
     setStatus('Chat not cleared. Check database rules.', true);
@@ -886,6 +1020,16 @@ exportChatBtn.addEventListener('click', () => {
   a.download = `lighthouse-chat-${new Date().toISOString().slice(0, 10)}.txt`;
   a.click();
   URL.revokeObjectURL(url);
+});
+
+roomList?.addEventListener('click', (event) => {
+  const button = event.target.closest('.room-item');
+  if (!button) return;
+
+  const room = button.dataset.room;
+  if (!room) return;
+
+  switchRoom(room);
 });
 
 accountBtn?.addEventListener('click', () => {

@@ -11,7 +11,24 @@
 </head>
 <body>
   <main class="chat-shell">
-    <section class="chat-card" aria-label="Lighthouse Messages">
+  <section class="chat-card" aria-label="Lighthouse Messages">
+
+    <!-- Room Sidebar -->
+    <aside class="room-sidebar">
+      <div class="room-sidebar-header">
+        <h3>Rooms</h3>
+      </div>
+
+      <div id="roomList" class="room-list">
+        <button class="room-item active-room" data-room="main">Main Chat</button>
+        <button class="room-item" data-room="family">Family</button>
+        <button class="room-item" data-room="business">Business</button>
+      </div>
+    </aside>
+
+    <!-- Main Chat Area -->
+    <div class="chat-main">
+
       <header class="chat-header">
         <div>
           <h1>Lighthouse</h1>
@@ -46,61 +63,70 @@
       </form>
 
       <p id="chatStatus" class="status-message" role="status"></p>
-      <div id="accountModal" class="account-modal hidden">
-  <div class="account-card">
 
-    <div class="account-header">
-      <h3>Account</h3>
-      <button id="closeAccountBtn" type="button">✕</button>
     </div>
 
-    <button id="signOutBtn" class="small-btn" type="button">Sign Out</button>
+    <!-- Account Modal -->
+    <div id="accountModal" class="account-modal hidden">
+      <div class="account-card">
 
-    <section class="profile-panel">
-      <form id="profileForm" class="profile-form">
-        <label for="displayNameInput">Display Name</label>
-        <div class="profile-row">
-          <input id="displayNameInput" type="text" maxlength="30" />
-          <button type="submit">Save</button>
+        <div class="account-header">
+          <h3>Account</h3>
+          <button id="closeAccountBtn" type="button">✕</button>
         </div>
-      </form>
 
-      <div class="online-panel">
-        <span class="online-title">Online</span>
-        <div id="onlineList" class="online-list">Loading...</div>
-      </div>
-    </section>
+        <button id="signOutBtn" class="small-btn" type="button">Sign Out</button>
 
-    <section id="adminPanel" class="admin-panel hidden">
-      <div class="admin-head">
-        <strong>Admin</strong>
-        <span>Tools</span>
-      </div>
+        <section class="profile-panel">
+          <form id="profileForm" class="profile-form">
+            <label for="displayNameInput">Display Name</label>
+            <div class="profile-row">
+              <input id="displayNameInput" type="text" maxlength="30" />
+              <button type="submit">Save</button>
+            </div>
+          </form>
 
-      <div class="admin-grid">
-        <button id="clearChatBtn" class="small-btn danger-btn" type="button">Clear Chat</button>
-        <button id="createInviteBtn" class="small-btn" type="button">Create Access Code</button>
-        <button id="exportChatBtn" class="small-btn" type="button">Export Chat</button>
-      </div>
+          <div class="online-panel">
+            <span class="online-title">Online</span>
+            <div id="onlineList" class="online-list">Loading...</div>
+          </div>
+        </section>
 
-      <div id="inviteResult" class="invite-result"></div>
-      <div id="memberList" class="member-list"></div>
-    </section>
+        <section id="adminPanel" class="admin-panel hidden">
+          <div class="admin-head">
+            <strong>Admin</strong>
+            <span>Tools</span>
+          </div>
 
-  </div>
+          <div class="admin-grid">
+            <button id="clearChatBtn" class="small-btn danger-btn" type="button">Clear Chat</button>
+            <button id="createInviteBtn" class="small-btn" type="button">Create Access Code</button>
+            <button id="exportChatBtn" class="small-btn" type="button">Export Chat</button>
+          </div>
+
+          <div id="inviteResult" class="invite-result"></div>
+          <div id="memberList" class="member-list"></div>
+          <div class="room-members-panel">
+  <div class="member-title">Room Members</div>
+
+  <div id="roomMemberManager"></div>
 </div>
+        </section>
 
-      <!-- Reaction Picker -->
-      <div id="reactionPicker" class="reaction-picker hidden">
-        <button type="button" class="reaction-option">👍</button>
-        <button type="button" class="reaction-option">❤️</button>
-        <button type="button" class="reaction-option">😂</button>
-        <button type="button" class="reaction-option">😮</button>
-        <button type="button" class="reaction-option">😢</button>
       </div>
+    </div>
 
-    </section>
-  </main>
+    <!-- Reaction Picker -->
+    <div id="reactionPicker" class="reaction-picker hidden">
+      <button type="button" class="reaction-option">👍</button>
+      <button type="button" class="reaction-option">❤️</button>
+      <button type="button" class="reaction-option">😂</button>
+      <button type="button" class="reaction-option">😮</button>
+      <button type="button" class="reaction-option">😢</button>
+    </div>
+
+  </section>
+</main>
 
   <script type="module" src="chat.js"></script>
   <div id="memberInfoModal" class="account-modal hidden">
