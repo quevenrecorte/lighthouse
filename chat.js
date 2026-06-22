@@ -859,12 +859,16 @@ createInviteBtn.addEventListener('click', async () => {
   const code = createInviteCode();
   try {
     await set(ref(db, `invites/${code}`), {
-      active: true,
-      createdBy: currentUser.uid,
-      createdByName: userDisplayName,
-      createdAt: serverTimestamp()
-    });
-    inviteResult.innerHTML = `Access Code: <strong>${escapeText(code)}</strong>`;
+  active: true,
+  createdBy: currentUser.uid,
+  createdByName: userDisplayName,
+  createdAt: Date.now(),
+  expiresAt: Date.now() + (5 * 60 * 1000)
+});
+    inviteResult.innerHTML = `
+  Access Code: <strong>${escapeText(code)}</strong><br>
+  Expires in: <strong>5 minutes</strong>
+`;
   } catch (error) {
     setStatus('Access code not created. Check database rules.', true);
     console.error(error);

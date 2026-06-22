@@ -170,11 +170,17 @@ if (signupForm) signupForm.addEventListener('submit', async (event) => {
     const inviteSnap = await get(ref(db, `invites/${inviteCode}`));
     const invite = inviteSnap.val();
 
-    if (!invite || invite.active !== true || invite.usedBy) {
-      showStatus(signupStatus, 'Invalid or used access code.', true);
-      isSubmitting = false;
-      return;
-    }
+    if (!invite || invite.active !== true) {
+  showStatus(signupStatus, 'Invalid access code.', true);
+  isSubmitting = false;
+  return;
+}
+
+if (invite.expiresAt && Date.now() > invite.expiresAt) {
+  showStatus(signupStatus, 'Access code expired.', true);
+  isSubmitting = false;
+  return;
+}
 
     const email = usernameToEmail(username);
     const credential = await createUserWithEmailAndPassword(auth, email, password);
@@ -193,12 +199,12 @@ if (signupForm) signupForm.addEventListener('submit', async (event) => {
       online: true
     });
 
-    await update(ref(db, `invites/${inviteCode}`), {
+    /*await update(ref(db, `invites/${inviteCode}`), {
       active: false,
       usedBy: uid,
       usedByName: username,
       usedAt: serverTimestamp()
-    });
+    });*/
 
     showStatus(signupStatus, 'Account created. Opening...');
     window.location.href = 'chat.html';
