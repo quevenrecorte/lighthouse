@@ -626,34 +626,15 @@ messagesEl.addEventListener('click', async (event) => {
 }
 
 if (button.classList.contains('react-message')) {
-  alert("NEW CHAT JS LOADED");
+  
+
   activeReactionMessage = id;
 
   const rect = button.getBoundingClientRect();
+  const cardRect = document.querySelector('.chat-card').getBoundingClientRect();
 
-  const pickerWidth = 280;
-  const pickerHeight = 70;
-  const margin = 12;
-
-  let left = rect.left;
-  let top;
-
-  // Prevent overflow right
-  if (left + pickerWidth > window.innerWidth - margin) {
-    left = window.innerWidth - pickerWidth - margin;
-  }
-
-  // Prevent overflow left
-  if (left < margin) {
-    left = margin;
-  }
-
-  // Open above if possible, otherwise below
-  if (rect.top > pickerHeight + margin) {
-    top = rect.top - pickerHeight - 8;
-  } else {
-    top = rect.bottom + 8;
-  }
+  let left = rect.left - cardRect.left;
+  let top = rect.top - cardRect.top - 70;
 
   reactionPicker.style.left = `${left}px`;
   reactionPicker.style.top = `${top}px`;

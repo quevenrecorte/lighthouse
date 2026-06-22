@@ -607,7 +607,7 @@ input:focus {
 
 /* Reaction Picker Popup */
 .reaction-picker {
-  position: fixed;
+  position: absolute;
   display: flex;
   gap: 8px;
   padding: 10px 12px;
