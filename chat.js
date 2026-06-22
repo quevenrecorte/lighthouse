@@ -41,6 +41,7 @@ const closeMemberInfoBtn = document.getElementById('closeMemberInfoBtn');
 const infoDisplayName = document.getElementById('infoDisplayName');
 const infoEmail = document.getElementById('infoEmail');
 const infoRole = document.getElementById('infoRole');
+const infoAccountType = document.getElementById('infoAccountType');
 const infoStatus = document.getElementById('infoStatus');
 const infoCreatedDate = document.getElementById('infoCreatedDate');
 const infoLastOnline = document.getElementById('infoLastOnline');
@@ -262,15 +263,16 @@ async function ensureUserProfile(user) {
 
   if (!snapshot.exists()) {
     await set(userRef, {
-      displayName: fallbackName,
-      username: fallbackName,
-      email: user.email || '',
-      role: firstAdmin ? 'admin' : 'member',
-      approved: firstAdmin,
-      createdAt: serverTimestamp(),
-      lastSeen: serverTimestamp(),
-      online: true
-    });
+  displayName: fallbackName,
+  username: fallbackName,
+  email: user.email || '',
+  role: firstAdmin ? 'admin' : 'member',
+  approved: firstAdmin,
+  accountType: firstAdmin ? 'admin-created' : 'invite-registered',
+  createdAt: serverTimestamp(),
+  lastSeen: serverTimestamp(),
+  online: true
+});
     return { displayName: fallbackName, role: firstAdmin ? 'admin' : 'member', approved: firstAdmin };
   }
 
@@ -780,6 +782,14 @@ memberList.addEventListener('click', (event) => {
   infoDisplayName.textContent = user.displayName || '-';
   infoEmail.textContent = user.email || '-';
   infoRole.textContent = user.role || 'member';
+  if (!user.accountType) {
+  infoAccountType.textContent = 'Legacy Account';
+} else {
+  infoAccountType.textContent =
+    user.accountType === 'admin-created'
+      ? 'Admin-Created'
+      : 'Invite-Registered';
+}
   infoCreatedDate.textContent = formatDate(user.createdAt);
   infoLastOnline.textContent = user.online
   ? '🟢 Online Now'
