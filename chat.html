@@ -17,37 +17,8 @@
           <h1>Lighthouse</h1>
           <p id="userLabel" class="signed-in-text">Checking session...</p>
         </div>
-        <button id="signOutBtn" class="small-btn" type="button">Sign Out</button>
+        <button id="accountBtn" class="small-btn" type="button">Account</button>
       </header>
-
-      <section class="profile-panel">
-        <form id="profileForm" class="profile-form">
-          <label for="displayNameInput">Display Name</label>
-          <div class="profile-row">
-            <input id="displayNameInput" type="text" maxlength="30" autocomplete="nickname" />
-            <button type="submit">Save</button>
-          </div>
-        </form>
-
-        <div class="online-panel">
-          <span class="online-title">Online</span>
-          <div id="onlineList" class="online-list">Loading...</div>
-        </div>
-      </section>
-
-      <section id="adminPanel" class="admin-panel hidden">
-        <div class="admin-head">
-          <strong>Admin</strong>
-          <span>Tools</span>
-        </div>
-        <div class="admin-grid">
-          <button id="clearChatBtn" class="small-btn danger-btn" type="button">Clear Chat</button>
-          <button id="createInviteBtn" class="small-btn" type="button">Create Access Code</button>
-          <button id="exportChatBtn" class="small-btn" type="button">Export Chat</button>
-        </div>
-        <div id="inviteResult" class="invite-result"></div>
-        <div id="memberList" class="member-list"></div>
-      </section>
 
       <section id="messages" class="messages" aria-live="polite"></section>
 
@@ -75,6 +46,49 @@
       </form>
 
       <p id="chatStatus" class="status-message" role="status"></p>
+      <div id="accountModal" class="account-modal hidden">
+  <div class="account-card">
+
+    <div class="account-header">
+      <h3>Account</h3>
+      <button id="closeAccountBtn" type="button">✕</button>
+    </div>
+
+    <button id="signOutBtn" class="small-btn" type="button">Sign Out</button>
+
+    <section class="profile-panel">
+      <form id="profileForm" class="profile-form">
+        <label for="displayNameInput">Display Name</label>
+        <div class="profile-row">
+          <input id="displayNameInput" type="text" maxlength="30" />
+          <button type="submit">Save</button>
+        </div>
+      </form>
+
+      <div class="online-panel">
+        <span class="online-title">Online</span>
+        <div id="onlineList" class="online-list">Loading...</div>
+      </div>
+    </section>
+
+    <section id="adminPanel" class="admin-panel hidden">
+      <div class="admin-head">
+        <strong>Admin</strong>
+        <span>Tools</span>
+      </div>
+
+      <div class="admin-grid">
+        <button id="clearChatBtn" class="small-btn danger-btn" type="button">Clear Chat</button>
+        <button id="createInviteBtn" class="small-btn" type="button">Create Access Code</button>
+        <button id="exportChatBtn" class="small-btn" type="button">Export Chat</button>
+      </div>
+
+      <div id="inviteResult" class="invite-result"></div>
+      <div id="memberList" class="member-list"></div>
+    </section>
+
+  </div>
+</div>
 
       <!-- Reaction Picker -->
       <div id="reactionPicker" class="reaction-picker hidden">
@@ -89,5 +103,26 @@
   </main>
 
   <script type="module" src="chat.js"></script>
+  <div id="memberInfoModal" class="account-modal hidden">
+  <div class="account-card">
+    
+    <div class="account-header">
+      <h3>Account Info</h3>
+      <button id="closeMemberInfoBtn" type="button">✕</button>
+    </div>
+
+    <div class="member-info-grid">
+      <p><strong>Display Name:</strong> <span id="infoDisplayName">-</span></p>
+      <p><strong>Email:</strong> <span id="infoEmail">-</span></p>
+      <p><strong>Role:</strong> <span id="infoRole">-</span></p>
+      <p><strong>Status:</strong> <span id="infoStatus">-</span></p>
+    </div>
+
+    <button id="toggleAccountBtn" class="small-btn danger-btn" type="button">
+      Disable Account
+    </button>
+
+  </div>
+</div>
 </body>
 </html>

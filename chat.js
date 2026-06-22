@@ -34,6 +34,16 @@ const db = getDatabase(app);
 
 const userLabel = document.getElementById('userLabel');
 const signOutBtn = document.getElementById('signOutBtn');
+const accountBtn = document.getElementById('accountBtn');
+const accountModal = document.getElementById('accountModal');
+const memberInfoModal = document.getElementById('memberInfoModal');
+const closeMemberInfoBtn = document.getElementById('closeMemberInfoBtn');
+const infoDisplayName = document.getElementById('infoDisplayName');
+const infoEmail = document.getElementById('infoEmail');
+const infoRole = document.getElementById('infoRole');
+const infoStatus = document.getElementById('infoStatus');
+const toggleAccountBtn = document.getElementById('toggleAccountBtn');
+const closeAccountBtn = document.getElementById('closeAccountBtn');
 const messagesEl = document.getElementById('messages');
 const messageForm = document.getElementById('messageForm');
 const messageInput = document.getElementById('messageInput');
@@ -439,12 +449,17 @@ function renderMemberList() {
     const row = document.createElement('div');
     row.className = 'member-row';
     row.innerHTML = `
-      <span>${escapeText(cleanName(user.displayName) || user.email || 'User')}</span>
-      <select data-uid="${uid}" class="role-select">
-        <option value="member" ${user.role === 'member' ? 'selected' : ''}>member</option>
-        <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>admin</option>
-      </select>
-    `;
+  <span>${escapeText(cleanName(user.displayName) || user.email || 'User')}</span>
+
+  <select data-uid="${uid}" class="role-select">
+    <option value="member" ${user.role === 'member' ? 'selected' : ''}>member</option>
+    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>admin</option>
+  </select>
+
+  <button class="account-info-btn" data-uid="${uid}" type="button">
+  Account Info
+  </button>
+`;
     memberList.appendChild(row);
   });
 }
@@ -453,6 +468,17 @@ function createInviteCode() {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = 'LH-';
   for (let i = 0; i < 8; i++) code += alphabet[Math.floor(Math.random() * alphabet.length)];
+  return code;
+}
+
+function createPasswordResetCode() {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = 'PW-';
+
+  for (let i = 0; i < 8; i++) {
+    code += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+
   return code;
 }
 
@@ -687,6 +713,87 @@ memberList.addEventListener('change', async (event) => {
   }
 });
 
+/*memberList.addEventListener('click', async (event) => {
+  console.log("CLICK DETECTED");
+  const button = event.target.closest('.reset-password-btn');
+  if (!button || !isAdmin) return;
+
+  const uid = button.dataset.uid;
+  if (!uid) return;
+
+  const resetCode = createPasswordResetCode();
+
+  try {
+    await set(ref(db, `passwordResets/${resetCode}`), {
+      uid,
+      active: true,
+      createdBy: currentUser.uid,
+      createdByName: userDisplayName,
+      createdAt: serverTimestamp()
+    });
+
+    alert(`Password Reset Code for member:\n\n${resetCode}`);
+  } catch (error) {
+    setStatus('Password reset code not created.', true);
+    console.error(error);
+  }
+});*/
+
+memberList.addEventListener('click', (event) => {
+  const button = event.target.closest('.account-info-btn');
+  if (!button || !isAdmin) return;
+
+  const uid = button.dataset.uid;
+  if (!uid) return;
+
+  const user = allUsers[uid];
+  if (!user) return;
+
+  infoDisplayName.textContent = user.displayName || '-';
+  infoEmail.textContent = user.email || '-';
+  infoRole.textContent = user.role || 'member';
+  infoStatus.textContent = user.disabled ? 'Disabled' : 'Active';
+
+  toggleAccountBtn.textContent = user.disabled
+    ? 'Enable Account'
+    : 'Disable Account';
+
+  toggleAccountBtn.dataset.uid = uid;
+
+  memberInfoModal.classList.remove('hidden');
+});
+
+toggleAccountBtn?.addEventListener('click', async () => {
+  const uid = toggleAccountBtn.dataset.uid;
+  if (!uid || !isAdmin) return;
+
+  if (uid === currentUser.uid) {
+  setStatus('You cannot disable your own admin account.', true);
+  return;
+}
+
+  const user = allUsers[uid];
+  if (!user) return;
+
+  const newStatus = !user.disabled;
+
+  try {
+    await update(ref(db, `users/${uid}`), {
+      disabled: newStatus
+    });
+
+    infoStatus.textContent = newStatus ? 'Disabled' : 'Active';
+    toggleAccountBtn.textContent = newStatus
+      ? 'Enable Account'
+      : 'Disable Account';
+
+    setStatus(newStatus ? 'Account disabled.' : 'Account enabled.');
+  } catch (error) {
+    setStatus('Account status update failed.', true);
+    console.error(error);
+  }
+});
+
 clearChatBtn.addEventListener('click', async () => {
   if (!isAdmin) return;
   if (!confirm('Clear all chat messages? This cannot be undone.')) return;
@@ -727,6 +834,18 @@ exportChatBtn.addEventListener('click', () => {
   a.download = `lighthouse-chat-${new Date().toISOString().slice(0, 10)}.txt`;
   a.click();
   URL.revokeObjectURL(url);
+});
+
+accountBtn?.addEventListener('click', () => {
+  accountModal.classList.remove('hidden');
+});
+
+closeAccountBtn?.addEventListener('click', () => {
+  accountModal.classList.add('hidden');
+});
+
+closeMemberInfoBtn?.addEventListener('click', () => {
+  memberInfoModal.classList.add('hidden');
 });
 
 signOutBtn.addEventListener('click', async () => {
