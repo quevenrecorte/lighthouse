@@ -825,3 +825,233 @@ input:focus {
   height: 18px;
   cursor: pointer;
 }
+
+/* =========================================
+   LIGHTHOUSE v4.2.1 UI POLISH
+   PC + MOBILE OPTIMIZATION
+========================================= */
+
+/* ===== DESKTOP WIDER LAYOUT ===== */
+.chat-card {
+  width: min(96%, 1380px);
+  min-height: min(92vh, 900px);
+}
+
+/* =========================================
+   MOBILE OPTIMIZATION
+========================================= */
+@media (max-width: 768px) {
+
+  .chat-shell {
+    padding: 6px;
+  }
+
+  .chat-card {
+    width: 100%;
+    min-height: 98vh;
+    padding: 12px;
+    border-radius: 18px;
+    gap: 10px;
+    flex-direction: column;
+  }
+
+  /* Rooms section becomes compact horizontal */
+  .room-sidebar {
+    width: 100%;
+    padding: 8px 0;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    gap: 8px;
+  }
+
+  .room-sidebar-header h3 {
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+
+  .room-list {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    overflow-x: auto;
+  }
+
+  .room-item {
+    min-width: 90px;
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  /* Header compact */
+  .chat-header {
+    gap: 8px;
+    align-items: center;
+  }
+
+  .chat-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .signed-in-text {
+    margin: 2px 0 0;
+    font-size: 0.82rem;
+  }
+
+  .small-btn {
+    height: 36px;
+    padding: 0 12px;
+    font-size: 0.82rem;
+  }
+
+  /* Bigger usable message area */
+  .messages {
+    min-height: 0;
+    height: 58vh;
+    max-height: 58vh;
+    padding: 10px;
+    border-radius: 16px;
+  }
+
+  /* More compact bubbles */
+  .message {
+    max-width: 95%;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-radius: 14px;
+  }
+
+  .message-meta {
+    font-size: 0.68rem;
+    margin-bottom: 4px;
+  }
+
+  .message-text {
+    font-size: 0.92rem;
+    line-height: 1.35;
+  }
+
+  /* Compact message actions */
+  .message-actions {
+    gap: 4px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+  }
+
+  .mini-action {
+    font-size: 0.65rem;
+    padding: 4px 7px;
+  }
+
+  /* Compact input area */
+  .message-form {
+    grid-template-columns: 1fr auto;
+    gap: 6px;
+  }
+
+  .message-form input {
+    height: 44px;
+    font-size: 0.9rem;
+  }
+
+  .message-form button {
+    height: 44px;
+    padding: 0 16px;
+    border-radius: 14px;
+  }
+
+  #attachBtn {
+    padding: 0 12px;
+    border-radius: 12px;
+  }
+
+  /* Account modal mobile */
+  .account-card {
+    width: 98%;
+    max-height: 92vh;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .member-row {
+    padding: 8px;
+  }
+
+  .room-manager-box {
+    padding: 10px;
+  }
+}
+
+/* v4.2.1 Step 1 - Compact Mobile Header */
+@media (max-width: 768px) {
+
+  .room-sidebar-header {
+    display: none;
+  }
+
+  .chat-header h1 {
+  display: block;
+  font-size: 1.8rem;
+  margin: 0;
+  text-align: center;
+}
+
+.signed-in-text {
+  display: block;
+  margin: 2px 0 0;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+  .chat-header {
+  margin: 0;
+  padding: 0;
+  gap: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.small-btn {
+  width: 100%;
+  height: 36px;
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+/* v4.2.1 Step 2 - Single Row Input on Mobile */
+@media (max-width: 768px) {
+
+  #messageForm {
+    display: grid !important;
+    grid-template-columns: 1fr 44px 82px !important;
+    gap: 6px !important;
+    align-items: center !important;
+  }
+
+  #messageInput {
+    width: 100%;
+    height: 42px !important;
+    min-width: 0;
+  }
+
+  #attachBtn {
+    width: 44px !important;
+    height: 42px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+  }
+
+  #messageForm button[type="submit"] {
+    height: 42px !important;
+    width: 82px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 12px !important;
+  }
+}
+

@@ -13,7 +13,17 @@
   <main class="chat-shell">
   <section class="chat-card" aria-label="Lighthouse Messages">
 
-    <!-- Room Sidebar -->
+  <div class="chat-main">
+
+    <header class="chat-header">
+      <div>
+        <h1>Lighthouse</h1>
+        <p id="userLabel" class="signed-in-text">Checking session...</p>
+      </div>
+      <button id="accountBtn" class="small-btn" type="button">Account</button>
+    </header>
+
+    <!-- Room Selector -->
     <aside class="room-sidebar">
       <div class="room-sidebar-header">
         <h3>Rooms</h3>
@@ -26,45 +36,34 @@
       </div>
     </aside>
 
-    <!-- Main Chat Area -->
-    <div class="chat-main">
+    <section id="messages" class="messages" aria-live="polite"></section>
 
-      <header class="chat-header">
-        <div>
-          <h1>Lighthouse</h1>
-          <p id="userLabel" class="signed-in-text">Checking session...</p>
-        </div>
-        <button id="accountBtn" class="small-btn" type="button">Account</button>
-      </header>
-
-      <section id="messages" class="messages" aria-live="polite"></section>
-
-      <!-- Reply Preview -->
-      <div id="replyPreview" class="reply-preview hidden">
-        <div class="reply-preview-content">
-          <strong id="replySender"></strong>
-          <p id="replyText"></p>
-        </div>
-        <button id="cancelReplyBtn" type="button">✕</button>
+    <!-- Reply Preview -->
+    <div id="replyPreview" class="reply-preview hidden">
+      <div class="reply-preview-content">
+        <strong id="replySender"></strong>
+        <p id="replyText"></p>
       </div>
-
-      <form id="messageForm" class="message-form">
-        <input id="messageInput" type="text" placeholder="Write a message..." autocomplete="off" maxlength="500" />
-
-        <input
-          id="fileInput"
-          type="file"
-          hidden
-          accept="image/png,image/jpeg,image/webp,.txt,.pdf,.doc,.docx"
-        />
-
-        <button id="attachBtn" type="button">📎</button>
-        <button type="submit">Send</button>
-      </form>
-
-      <p id="chatStatus" class="status-message" role="status"></p>
-
+      <button id="cancelReplyBtn" type="button">✕</button>
     </div>
+
+    <form id="messageForm" class="message-form">
+      <input id="messageInput" type="text" placeholder="Write a message..." autocomplete="off" maxlength="500" />
+
+      <input
+        id="fileInput"
+        type="file"
+        hidden
+        accept="image/png,image/jpeg,image/webp,.txt,.pdf,.doc,.docx"
+      />
+
+      <button id="attachBtn" type="button">📎</button>
+      <button type="submit">Send</button>
+    </form>
+
+    <p id="chatStatus" class="status-message" role="status"></p>
+
+  </div>
 
     <!-- Account Modal -->
     <div id="accountModal" class="account-modal hidden">
