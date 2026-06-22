@@ -626,6 +626,7 @@ messagesEl.addEventListener('click', async (event) => {
 }
 
 if (button.classList.contains('react-message')) {
+  alert("NEW CHAT JS LOADED");
   activeReactionMessage = id;
 
   const rect = button.getBoundingClientRect();
