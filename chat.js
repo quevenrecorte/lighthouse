@@ -939,11 +939,11 @@ memberList.addEventListener('click', (event) => {
   const header = event.target.closest('.member-header');
   if (!header) return;
 
-  const roomBox = header.closest('.room-manager-box');
-if (!roomBox) return;
+  const memberRow = header.closest('.member-row');
+  if (!memberRow) return;
 
-const content = roomBox.querySelector('.room-manager-content');
-if (!content) return;
+  const content = memberRow.querySelector('.member-content');
+  if (!content) return;
 
   content.classList.toggle('hidden');
 });
