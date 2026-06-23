@@ -858,10 +858,18 @@ input:focus {
 }
 
 .room-manager-header {
-  min-height: 32px;
+  min-height: 42px;
   display: flex;
   align-items: center;
-  cursor: pointer;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rename-room-btn {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 0.75rem;
+  flex-shrink: 0;
 }
 
 #roomMemberManager {
@@ -869,8 +877,9 @@ input:focus {
 }
 
 .room-manager-box h4 {
-  margin: 0 0 14px;
+  margin: 0;
   color: #eaf7f5;
+  font-size: 1rem;
 }
 
 .room-member-item {
@@ -1227,4 +1236,18 @@ input:focus {
   border: 1px solid rgba(255,255,255,0.14);
   background: rgba(14, 37, 41, 0.96);
   backdrop-filter: blur(18px);
+}
+
+.rename-room-btn {
+  height: 32px;
+  min-width: 82px;
+  padding: 0 12px;
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.08);
+  color: var(--accent-strong);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
 }

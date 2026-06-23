@@ -64,6 +64,7 @@ const exportChatBtn = document.getElementById('exportChatBtn');
 const createRoomBtn = document.getElementById('createRoomBtn');
 const createRoomModal = document.getElementById('createRoomModal');
 const roomNameInput = document.getElementById('roomNameInput');
+const roomModalTitle = document.getElementById('roomModalTitle');
 const cancelCreateRoomBtn = document.getElementById('cancelCreateRoomBtn');
 const confirmCreateRoomBtn = document.getElementById('confirmCreateRoomBtn');
 const inviteResult = document.getElementById('inviteResult');
@@ -92,6 +93,8 @@ let replyTarget = null;
 let activeReactionMessage = null;
 let activeRoom = 'main';
 let roomsData = {};
+let roomModalMode = 'create';
+let renameTargetRoom = null;
 let roomMembers = {};
 let activeRoomPanels = {};
 
@@ -634,8 +637,11 @@ function renderRoomMemberManager() {
     html += `
   <div class="room-manager-box">
     <div class="room-manager-header">
-      <h4>${escapeText(roomsData[room]?.name || room)}</h4>
-    </div>
+  <h4>${escapeText(roomsData[room]?.name || room)}</h4>
+  <button class="rename-room-btn" data-room="${room}" type="button">
+    Rename
+  </button>
+</div>
 `;
     const hiddenClass = activeRoomPanels[room] ? '' : 'hidden';
 html += `<div class="room-manager-content ${hiddenClass}"><div class="room-members-grid">`;
@@ -925,19 +931,26 @@ memberList.addEventListener('click', (event) => {
 createRoomBtn?.addEventListener('click', () => {
   if (!isAdmin) return;
 
-  createRoomModal.classList.remove('hidden');
+  roomModalMode = 'create';
+  renameTargetRoom = null;
+
+  roomModalTitle.textContent = 'Create Room';
+  confirmCreateRoomBtn.textContent = 'Create';
   roomNameInput.value = '';
+
+  createRoomModal.classList.remove('hidden');
   roomNameInput.focus();
 });
 
 roomMemberManager?.addEventListener('click', (event) => {
 
   if (
-    event.target.matches('input') ||
-    event.target.closest('.room-member-item')
-  ) {
-    return;
-  }
+  event.target.matches('input') ||
+  event.target.closest('.room-member-item') ||
+  event.target.closest('.rename-room-btn')
+) {
+  return;
+}
 
   const header = event.target.closest('.room-manager-header');
   if (!header) return;
@@ -953,9 +966,30 @@ if (!roomName) return;
 activeRoomPanels[roomName] = !isHidden;
 });
 
+roomMemberManager?.addEventListener('click', (event) => {
+  const button = event.target.closest('.rename-room-btn');
+  if (!button || !isAdmin) return;
+
+  const roomId = button.dataset.room;
+  if (!roomId) return;
+
+  roomModalMode = 'rename';
+  renameTargetRoom = roomId;
+
+  roomModalTitle.textContent = 'Rename Room';
+  confirmCreateRoomBtn.textContent = 'Save';
+  roomNameInput.value = roomsData[roomId]?.name || roomId;
+
+  createRoomModal.classList.remove('hidden');
+  roomNameInput.focus();
+  roomNameInput.select();
+});
+
 cancelCreateRoomBtn?.addEventListener('click', () => {
   createRoomModal.classList.add('hidden');
 });
+
+
 
 confirmCreateRoomBtn?.addEventListener('click', async () => {
   if (!isAdmin) return;
@@ -976,16 +1010,52 @@ confirmCreateRoomBtn?.addEventListener('click', async () => {
   }
 
   try {
+  if (roomModalMode === 'create') {
     await set(ref(db, `rooms/${roomId}`), {
       name: roomName,
       members: {},
       messages: {}
     });
 
-    createRoomModal.classList.add('hidden');
     setStatus(`Room "${roomName}" created.`);
-  } catch (error) {
+  } else if (roomModalMode === 'rename') {
+    await update(ref(db, `rooms/${renameTargetRoom}`), {
+      name: roomName
+    });
+
+    setStatus(`Room renamed to "${roomName}".`);
+  }
+
+  createRoomModal.classList.add('hidden');
+} catch (error) {
     setStatus('Room creation failed.', true);
+    console.error(error);
+  }
+});
+
+roomMemberManager?.addEventListener('click', async (event) => {
+  const button = event.target.closest('.rename-room-btn');
+  if (!button || !isAdmin) return;
+
+  const roomId = button.dataset.room;
+  if (!roomId) return;
+
+  const currentName = roomsData[roomId]?.name || roomId;
+  const nextName = prompt(`Rename room "${currentName}" to:`);
+
+  if (!nextName) return;
+
+  const cleanName = nextName.trim();
+  if (!cleanName) return;
+
+  try {
+    await update(ref(db, `rooms/${roomId}`), {
+      name: cleanName
+    });
+
+    setStatus('Room renamed.');
+  } catch (error) {
+    setStatus('Room rename failed.', true);
     console.error(error);
   }
 });
