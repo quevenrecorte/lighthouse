@@ -85,6 +85,7 @@ let replyTarget = null;
 let activeReactionMessage = null;
 let activeRoom = 'main';
 let roomMembers = {};
+let activeRoomPanels = {};
 
 function defaultName(user) {
   if (user.displayName) return user.displayName;
@@ -562,7 +563,8 @@ function renderRoomMemberManager() {
       <h4>${room.charAt(0).toUpperCase() + room.slice(1)}</h4>
     </div>
 `;
-    html += `<div class="room-manager-content hidden"><div class="room-members-grid">`;
+    const hiddenClass = activeRoomPanels[room] ? '' : 'hidden';
+html += `<div class="room-manager-content ${hiddenClass}"><div class="room-members-grid">`;
     users.forEach(([uid, user]) => {
       const name = user.displayName || user.email || 'User';
 
@@ -847,13 +849,26 @@ memberList.addEventListener('click', (event) => {
 });
 
 roomMemberManager?.addEventListener('click', (event) => {
+
+  if (
+    event.target.matches('input') ||
+    event.target.closest('.room-member-item')
+  ) {
+    return;
+  }
+
   const header = event.target.closest('.room-manager-header');
   if (!header) return;
 
   const content = header.nextElementSibling;
   if (!content) return;
 
-  content.classList.toggle('hidden');
+  const isHidden = content.classList.toggle('hidden');
+
+const roomName = header.querySelector('h4')?.textContent?.toLowerCase();
+if (!roomName) return;
+
+activeRoomPanels[roomName] = !isHidden;
 });
 
 roomMemberManager?.addEventListener('change', async (event) => {
