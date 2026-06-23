@@ -61,6 +61,11 @@ const adminPanel = document.getElementById('adminPanel');
 const clearChatBtn = document.getElementById('clearChatBtn');
 const createInviteBtn = document.getElementById('createInviteBtn');
 const exportChatBtn = document.getElementById('exportChatBtn');
+const createRoomBtn = document.getElementById('createRoomBtn');
+const createRoomModal = document.getElementById('createRoomModal');
+const roomNameInput = document.getElementById('roomNameInput');
+const cancelCreateRoomBtn = document.getElementById('cancelCreateRoomBtn');
+const confirmCreateRoomBtn = document.getElementById('confirmCreateRoomBtn');
 const inviteResult = document.getElementById('inviteResult');
 const memberList = document.getElementById('memberList');
 const roomMemberManager = document.getElementById('roomMemberManager');
@@ -174,6 +179,14 @@ function renderRoomDropdown() {
 
 function cleanName(value) {
   return (value || '').trim().replace(/\s+/g, ' ').slice(0, 30);
+}
+
+function createRoomId(name) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_]/g, '');
 }
 
 function cleanMessage(value) {
@@ -621,7 +634,7 @@ function renderRoomMemberManager() {
     html += `
   <div class="room-manager-box">
     <div class="room-manager-header">
-      <h4>${room.charAt(0).toUpperCase() + room.slice(1)}</h4>
+      <h4>${escapeText(roomsData[room]?.name || room)}</h4>
     </div>
 `;
     const hiddenClass = activeRoomPanels[room] ? '' : 'hidden';
@@ -909,6 +922,14 @@ memberList.addEventListener('click', (event) => {
   content.classList.toggle('hidden');
 });
 
+createRoomBtn?.addEventListener('click', () => {
+  if (!isAdmin) return;
+
+  createRoomModal.classList.remove('hidden');
+  roomNameInput.value = '';
+  roomNameInput.focus();
+});
+
 roomMemberManager?.addEventListener('click', (event) => {
 
   if (
@@ -930,6 +951,43 @@ const roomName = header.querySelector('h4')?.textContent?.toLowerCase();
 if (!roomName) return;
 
 activeRoomPanels[roomName] = !isHidden;
+});
+
+cancelCreateRoomBtn?.addEventListener('click', () => {
+  createRoomModal.classList.add('hidden');
+});
+
+confirmCreateRoomBtn?.addEventListener('click', async () => {
+  if (!isAdmin) return;
+
+  const roomName = roomNameInput.value.trim();
+  if (!roomName) return;
+
+  const roomId = createRoomId(roomName);
+
+  if (!roomId) {
+    setStatus('Invalid room name.', true);
+    return;
+  }
+
+  if (roomsData[roomId]) {
+    setStatus('Room already exists.', true);
+    return;
+  }
+
+  try {
+    await set(ref(db, `rooms/${roomId}`), {
+      name: roomName,
+      members: {},
+      messages: {}
+    });
+
+    createRoomModal.classList.add('hidden');
+    setStatus(`Room "${roomName}" created.`);
+  } catch (error) {
+    setStatus('Room creation failed.', true);
+    console.error(error);
+  }
 });
 
 roomMemberManager?.addEventListener('change', async (event) => {

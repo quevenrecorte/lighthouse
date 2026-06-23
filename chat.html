@@ -94,6 +94,7 @@
             <button id="clearChatBtn" class="small-btn danger-btn" type="button">Clear Chat</button>
             <button id="createInviteBtn" class="small-btn" type="button">Create Access Code</button>
             <button id="exportChatBtn" class="small-btn" type="button">Export Chat</button>
+            <button id="createRoomBtn" class="small-btn" type="button">Create Room</button>
           </div>
 
           <div id="inviteResult" class="invite-result"></div>
@@ -107,6 +108,29 @@
 
       </div>
     </div>
+
+    <div id="createRoomModal" class="modal hidden">
+  <div class="modal-card">
+    <h3>Create Room</h3>
+
+    <input
+      id="roomNameInput"
+      class="modal-input"
+      type="text"
+      placeholder="Enter room name"
+      maxlength="30"
+    />
+
+    <div class="modal-actions">
+      <button id="cancelCreateRoomBtn" class="small-btn danger-btn" type="button">
+        Cancel
+      </button>
+      <button id="confirmCreateRoomBtn" class="small-btn" type="button">
+        Create
+      </button>
+    </div>
+  </div>
+</div>
 
     <!-- Reaction Picker -->
     <div id="reactionPicker" class="reaction-picker hidden">
