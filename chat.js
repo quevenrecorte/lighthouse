@@ -31,6 +31,7 @@ const FIRST_ADMIN_EMAIL = 'quevenrecorte@gmail.com';
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
+console.log("chat.js loaded");
 
 const userLabel = document.getElementById('userLabel');
 const signOutBtn = document.getElementById('signOutBtn');
@@ -69,6 +70,7 @@ const replyText = document.getElementById('replyText');
 const cancelReplyBtn = document.getElementById('cancelReplyBtn');
 const reactionPicker = document.getElementById('reactionPicker');
 const roomDropdown = document.getElementById('roomDropdown');
+console.log("roomDropdown =", roomDropdown);
 
 let currentUser = null;
 let currentProfile = null;
@@ -84,6 +86,7 @@ let selectedFile = null;
 let replyTarget = null;
 let activeReactionMessage = null;
 let activeRoom = 'main';
+let roomsData = {};
 let roomMembers = {};
 let activeRoomPanels = {};
 
@@ -91,6 +94,82 @@ function defaultName(user) {
   if (user.displayName) return user.displayName;
   if (user.email) return user.email.split('@')[0];
   return 'User';
+}
+
+function listenToRooms() {
+  console.log("listenToRooms started");
+
+  onValue(ref(db, 'rooms'), (snapshot) => {
+    console.log("rooms callback fired");
+
+    roomsData = snapshot.val() || {};
+    console.log("roomsData =", roomsData);
+
+    Object.keys(roomsData).forEach(roomId => {
+      roomMembers[roomId] = roomsData[roomId].members || {};
+    });
+
+    renderRoomDropdown();
+    renderRoomMemberManager();
+    updateRoomVisibility();
+  });
+}
+
+function renderRoomDropdown() {
+  if (!roomDropdown) return;
+
+  roomDropdown.innerHTML = '';
+
+  Object.entries(roomsData).forEach(([roomId, room]) => {
+    const option = document.createElement('option');
+    option.value = roomId;
+    option.textContent = room.name || roomId;
+    roomDropdown.appendChild(option);
+  });
+
+  updateRoomVisibility();
+
+  if (isAdmin) {
+    roomDropdown.value = activeRoom;
+    startMessageListener();
+    return;
+  }
+
+  const allowedRooms = Object.keys(roomsData).filter(
+    roomId => roomMembers[roomId]?.[currentUser?.uid]
+  );
+
+  if (allowedRooms.length === 0) {
+  roomDropdown.innerHTML = '';
+  
+  const option = document.createElement('option');
+  option.textContent = 'No rooms available';
+  option.disabled = true;
+  option.selected = true;
+  roomDropdown.appendChild(option);
+
+  messagesEl.innerHTML = '<p class="empty-state">No rooms available.</p>';
+
+  messageInput.disabled = true;
+  attachBtn.disabled = true;
+  messageForm.querySelector('button[type="submit"]').disabled = true;
+
+  return;
+}
+
+  if (!allowedRooms.includes(activeRoom)) {
+    activeRoom = allowedRooms[0];
+  }
+
+  roomDropdown.value = activeRoom;
+
+  if (unsubscribeMessages) unsubscribeMessages();
+
+  messageInput.disabled = false;
+  attachBtn.disabled = false;
+  messageForm.querySelector('button[type="submit"]').disabled = false;
+  
+  startMessageListener();
 }
 
 function cleanName(value) {
@@ -506,30 +585,12 @@ function renderMemberList() {
   });
 }
 
-function listenToRoomMembers() {
-  onValue(ref(db, 'rooms/family/members'), (snapshot) => {
-    roomMembers.family = snapshot.val() || {};
-    renderRoomMemberManager();
-    updateRoomVisibility();
-  });
-
-  onValue(ref(db, 'rooms/business/members'), (snapshot) => {
-    roomMembers.business = snapshot.val() || {};
-    renderRoomMemberManager();
-    updateRoomVisibility();
-  });
-}
 
 function updateRoomVisibility() {
   if (!roomDropdown) return;
 
   Array.from(roomDropdown.options).forEach(option => {
     const room = option.value;
-
-    if (room === 'main') {
-      option.hidden = false;
-      return;
-    }
 
     if (isAdmin) {
       option.hidden = false;
@@ -556,7 +617,7 @@ function renderRoomMemberManager() {
 
   let html = '';
 
-  ['family', 'business'].forEach(room => {
+  Object.keys(roomsData).forEach(room => {
     html += `
   <div class="room-manager-box">
     <div class="room-manager-header">
@@ -620,6 +681,7 @@ onAuthStateChanged(auth, async (user) => {
 
   try {
     currentProfile = await ensureUserProfile(user);
+
     if (currentProfile.approved === false) {
       setStatus('This account is not approved.', true);
       await signOut(auth);
@@ -636,9 +698,8 @@ onAuthStateChanged(auth, async (user) => {
     setupPresence(user);
     listenToProfile(user);
     listenToUsers();
-    listenToRoomMembers();
-    startMessageListener();
-    updateRoomVisibility();
+    listenToRooms();
+
   } catch (error) {
     setStatus('Unable to load profile. Check database rules.', true);
     console.error(error);
