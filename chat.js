@@ -637,24 +637,28 @@ function renderRoomMemberManager() {
     html += `
   <div class="room-manager-box">
     <div class="room-manager-header">
-  <h4>${escapeText(roomsData[room]?.name || room)}</h4>
+      <h4>${escapeText(roomsData[room]?.name || room)}</h4>
+    </div>
 
-  <div class="room-actions">
-    <label class="protected-toggle">
-      <input 
-        type="checkbox"
-        class="protected-room-checkbox"
-        data-room="${room}"
-        ${roomsData[room]?.protected ? 'checked' : ''}
-      />
-      Protected
-    </label>
+    <div class="room-actions">
+      <label class="protected-toggle">
+        <input 
+          type="checkbox"
+          class="protected-room-checkbox"
+          data-room="${room}"
+          ${roomsData[room]?.protected ? 'checked' : ''}
+        />
+        Protected
+      </label>
 
-    <button class="rename-room-btn" data-room="${room}" type="button">
-      Rename
-    </button>
-  </div>
-</div>
+      <button class="rename-room-btn" data-room="${room}" type="button">
+        Rename
+      </button>
+
+      <button class="delete-room-btn" data-room="${room}" type="button">
+        Delete
+      </button>
+    </div>
 `;
     const hiddenClass = activeRoomPanels[room] ? '' : 'hidden';
 html += `<div class="room-manager-content ${hiddenClass}"><div class="room-members-grid">`;
@@ -935,8 +939,11 @@ memberList.addEventListener('click', (event) => {
   const header = event.target.closest('.member-header');
   if (!header) return;
 
-  const content = header.nextElementSibling;
-  if (!content) return;
+  const roomBox = header.closest('.room-manager-box');
+if (!roomBox) return;
+
+const content = roomBox.querySelector('.room-manager-content');
+if (!content) return;
 
   content.classList.toggle('hidden');
 });
@@ -956,28 +963,66 @@ createRoomBtn?.addEventListener('click', () => {
 });
 
 roomMemberManager?.addEventListener('click', (event) => {
-
   if (
-  event.target.matches('input') ||
-  event.target.closest('.room-member-item') ||
-  event.target.closest('.rename-room-btn') ||
-  event.target.closest('.protected-room-checkbox')
-) {
-  return;
-}
+    event.target.matches('input') ||
+    event.target.closest('.room-member-item') ||
+    event.target.closest('.rename-room-btn') ||
+    event.target.closest('.delete-room-btn') ||
+    event.target.closest('.protected-room-checkbox')
+  ) {
+    return;
+  }
 
   const header = event.target.closest('.room-manager-header');
   if (!header) return;
 
-  const content = header.nextElementSibling;
+  const roomBox = header.closest('.room-manager-box');
+  if (!roomBox) return;
+
+  const content = roomBox.querySelector('.room-manager-content');
   if (!content) return;
 
   const isHidden = content.classList.toggle('hidden');
 
-const roomName = header.querySelector('h4')?.textContent?.toLowerCase();
-if (!roomName) return;
+  const roomName = header.querySelector('h4')?.textContent?.toLowerCase();
+  if (!roomName) return;
 
-activeRoomPanels[roomName] = !isHidden;
+  activeRoomPanels[roomName] = !isHidden;
+});
+
+roomMemberManager?.addEventListener('click', async (event) => {
+  const button = event.target.closest('.delete-room-btn');
+  if (!button || !isAdmin) return;
+
+  const roomId = button.dataset.room;
+  if (!roomId) return;
+
+  const room = roomsData[roomId];
+  if (!room) return;
+
+  if (room.protected) {
+    setStatus('Protected rooms cannot be deleted.', true);
+    return;
+  }
+
+  const confirmed = confirm(
+    `Delete room "${room.name || roomId}"?\n\nThis cannot be undone.`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await remove(ref(db, `rooms/${roomId}`));
+
+    if (activeRoom === roomId) {
+      activeRoom = 'main';
+    }
+
+    setStatus('Room deleted.');
+  } catch (error) {
+    setStatus('Room deletion failed.', true);
+    console.error(error);
+  }
 });
 
 roomMemberManager?.addEventListener('change', async (event) => {
@@ -1071,7 +1116,7 @@ confirmCreateRoomBtn?.addEventListener('click', async () => {
   }
 });
 
-roomMemberManager?.addEventListener('click', async (event) => {
+/*roomMemberManager?.addEventListener('click', async (event) => {
   const button = event.target.closest('.rename-room-btn');
   if (!button || !isAdmin) return;
 
@@ -1096,7 +1141,7 @@ roomMemberManager?.addEventListener('click', async (event) => {
     setStatus('Room rename failed.', true);
     console.error(error);
   }
-});
+});*/
 
 roomMemberManager?.addEventListener('change', async (event) => {
   const checkbox = event.target;
