@@ -485,16 +485,21 @@ function renderMemberList() {
     const row = document.createElement('div');
     row.className = 'member-row';
     row.innerHTML = `
-  <span>${escapeText(cleanName(user.displayName) || user.email || 'User')}</span>
+  <div class="member-header">
+    <span>${escapeText(cleanName(user.displayName) || user.email || 'User')}</span>
+    <span>⌄</span>
+  </div>
 
-  <select data-uid="${uid}" class="role-select">
-    <option value="member" ${user.role === 'member' ? 'selected' : ''}>member</option>
-    <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>admin</option>
-  </select>
+  <div class="member-content hidden">
+    <select data-uid="${uid}" class="role-select">
+      <option value="member" ${user.role === 'member' ? 'selected' : ''}>member</option>
+      <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>admin</option>
+    </select>
 
-  <button class="account-info-btn" data-uid="${uid}" type="button">
-  Account Info
-  </button>
+    <button class="account-info-btn" data-uid="${uid}" type="button">
+      Account Info
+    </button>
+  </div>
 `;
     memberList.appendChild(row);
   });
@@ -827,6 +832,16 @@ memberList.addEventListener('change', async (event) => {
     setStatus('Role not updated. Check database rules.', true);
     console.error(error);
   }
+});
+
+memberList.addEventListener('click', (event) => {
+  const header = event.target.closest('.member-header');
+  if (!header) return;
+
+  const content = header.nextElementSibling;
+  if (!content) return;
+
+  content.classList.toggle('hidden');
 });
 
 roomMemberManager?.addEventListener('change', async (event) => {

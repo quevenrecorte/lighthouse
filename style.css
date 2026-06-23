@@ -515,14 +515,38 @@ input:focus {
 }
 
 .member-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  align-items: center;
-  padding: 8px 10px;
+  padding: 10px 12px;
   border: 1px solid rgba(255,255,255,0.10);
   border-radius: 14px;
   background: rgba(255,255,255,0.04);
+}
+
+.member-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.member-content {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.member-content .role-select {
+  flex: 1;
+}
+
+.member-content .account-info-btn {
+  flex: 1;
+  height: 40px;
+}
+
+.member-content.hidden {
+  display: none;
 }
 
 .role-select {
