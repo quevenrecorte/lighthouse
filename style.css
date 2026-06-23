@@ -1148,17 +1148,36 @@ input:focus {
     margin-top: 4px;
   }
 
-  .message-form {
-    gap: 8px;
-  }
+  #messageForm {
+  display: grid !important;
+  grid-template-columns: 1fr 52px 120px !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
 
-  .message-form input {
-    height: 46px;
-  }
+#messageInput {
+  width: 100%;
+  height: 46px !important;
+  min-width: 0;
+}
 
-  .message-form button {
-    height: 46px;
-  }
+#attachBtn {
+  width: 52px !important;
+  height: 46px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+}
+
+#messageForm button[type="submit"] {
+  width: 120px !important;
+  height: 46px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 14px;
+}
 }
 
 .room-dropdown-wrap {
