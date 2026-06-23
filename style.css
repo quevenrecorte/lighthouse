@@ -1251,3 +1251,18 @@ input:focus {
   cursor: pointer;
   flex-shrink: 0;
 }
+
+.room-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.protected-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+}

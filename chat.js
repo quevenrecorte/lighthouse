@@ -638,9 +638,22 @@ function renderRoomMemberManager() {
   <div class="room-manager-box">
     <div class="room-manager-header">
   <h4>${escapeText(roomsData[room]?.name || room)}</h4>
-  <button class="rename-room-btn" data-room="${room}" type="button">
-    Rename
-  </button>
+
+  <div class="room-actions">
+    <label class="protected-toggle">
+      <input 
+        type="checkbox"
+        class="protected-room-checkbox"
+        data-room="${room}"
+        ${roomsData[room]?.protected ? 'checked' : ''}
+      />
+      Protected
+    </label>
+
+    <button class="rename-room-btn" data-room="${room}" type="button">
+      Rename
+    </button>
+  </div>
 </div>
 `;
     const hiddenClass = activeRoomPanels[room] ? '' : 'hidden';
@@ -947,7 +960,8 @@ roomMemberManager?.addEventListener('click', (event) => {
   if (
   event.target.matches('input') ||
   event.target.closest('.room-member-item') ||
-  event.target.closest('.rename-room-btn')
+  event.target.closest('.rename-room-btn') ||
+  event.target.closest('.protected-room-checkbox')
 ) {
   return;
 }
@@ -964,6 +978,29 @@ const roomName = header.querySelector('h4')?.textContent?.toLowerCase();
 if (!roomName) return;
 
 activeRoomPanels[roomName] = !isHidden;
+});
+
+roomMemberManager?.addEventListener('change', async (event) => {
+  const checkbox = event.target.closest('.protected-room-checkbox');
+  if (!checkbox || !isAdmin) return;
+
+  const roomId = checkbox.dataset.room;
+  if (!roomId) return;
+
+  try {
+    await update(ref(db, `rooms/${roomId}`), {
+      protected: checkbox.checked
+    });
+
+    setStatus(
+      checkbox.checked
+        ? 'Room protected.'
+        : 'Room unprotected.'
+    );
+  } catch (error) {
+    setStatus('Failed to update room protection.', true);
+    console.error(error);
+  }
 });
 
 roomMemberManager?.addEventListener('click', (event) => {
@@ -1013,8 +1050,9 @@ confirmCreateRoomBtn?.addEventListener('click', async () => {
   if (roomModalMode === 'create') {
     await set(ref(db, `rooms/${roomId}`), {
       name: roomName,
+      protected: false,
       members: {},
-      messages: {}
+    messages: {}
     });
 
     setStatus(`Room "${roomName}" created.`);
