@@ -557,10 +557,12 @@ function renderRoomMemberManager() {
 
   ['family', 'business'].forEach(room => {
     html += `
-      <div class="room-manager-box">
-        <h4>${room.charAt(0).toUpperCase() + room.slice(1)}</h4>
-    `;
-
+  <div class="room-manager-box">
+    <div class="room-manager-header">
+      <h4>${room.charAt(0).toUpperCase() + room.slice(1)}</h4>
+    </div>
+`;
+    html += `<div class="room-manager-content hidden"><div class="room-members-grid">`;
     users.forEach(([uid, user]) => {
       const name = user.displayName || user.email || 'User';
 
@@ -574,7 +576,7 @@ html += `
 `;
     });
 
-    html += `</div>`;
+    html += `</div></div></div>`;
   });
 
   roomMemberManager.innerHTML = html;
@@ -836,6 +838,16 @@ memberList.addEventListener('change', async (event) => {
 
 memberList.addEventListener('click', (event) => {
   const header = event.target.closest('.member-header');
+  if (!header) return;
+
+  const content = header.nextElementSibling;
+  if (!content) return;
+
+  content.classList.toggle('hidden');
+});
+
+roomMemberManager?.addEventListener('click', (event) => {
+  const header = event.target.closest('.room-manager-header');
   if (!header) return;
 
   const content = header.nextElementSibling;

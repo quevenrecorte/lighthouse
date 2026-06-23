@@ -512,6 +512,7 @@ input:focus {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  margin-top: 14px;
 }
 
 .member-row {
@@ -849,11 +850,22 @@ input:focus {
 }
 
 .room-manager-box {
-  margin-bottom: 24px;
-  padding: 14px;
+  margin-bottom: 10px;
+  padding: 8px 14px;
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 14px;
   background: rgba(255,255,255,0.02);
+}
+
+.room-manager-header {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+#roomMemberManager {
+  margin-top: 14px;
 }
 
 .room-manager-box h4 {
@@ -864,16 +876,20 @@ input:focus {
 .room-member-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0;
+  gap: 6px;
+  padding: 2px 0;
   color: #d8f6ef;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.15;
 }
 
 .room-member-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   cursor: pointer;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 /* MOBILE */
@@ -1155,4 +1171,18 @@ input:focus {
 .room-dropdown option {
   background: #1b2f33;
   color: white;
+}
+
+.room-members-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+
+.room-member-item {
+  word-break: break-word;
+}
+
+.room-manager-content.hidden {
+  display: none;
 }
