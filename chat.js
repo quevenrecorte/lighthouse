@@ -68,8 +68,7 @@ const replySender = document.getElementById('replySender');
 const replyText = document.getElementById('replyText');
 const cancelReplyBtn = document.getElementById('cancelReplyBtn');
 const reactionPicker = document.getElementById('reactionPicker');
-const roomList = document.getElementById('roomList');
-const roomButtons = document.querySelectorAll('.room-item');
+const roomDropdown = document.getElementById('roomDropdown');
 
 let currentUser = null;
 let currentProfile = null;
@@ -502,40 +501,37 @@ function renderMemberList() {
 }
 
 function listenToRoomMembers() {
-  console.log("ROOM MEMBER LISTENER STARTED");
-
   onValue(ref(db, 'rooms/family/members'), (snapshot) => {
     roomMembers.family = snapshot.val() || {};
-    console.log("FAMILY MEMBERS:", roomMembers.family);
     renderRoomMemberManager();
     updateRoomVisibility();
   });
 
   onValue(ref(db, 'rooms/business/members'), (snapshot) => {
     roomMembers.business = snapshot.val() || {};
-    console.log("BUSINESS MEMBERS:", roomMembers.business);
     renderRoomMemberManager();
     updateRoomVisibility();
   });
 }
 
 function updateRoomVisibility() {
-  document.querySelectorAll('.room-item').forEach(button => {
-    const room = button.dataset.room;
-    if (!room) return;
+  if (!roomDropdown) return;
+
+  Array.from(roomDropdown.options).forEach(option => {
+    const room = option.value;
 
     if (room === 'main') {
-      button.style.display = '';
+      option.hidden = false;
       return;
     }
 
     if (isAdmin) {
-      button.style.display = '';
+      option.hidden = false;
       return;
     }
 
-    const allowed = roomMembers[room]?.[currentUser.uid];
-    button.style.display = allowed ? '' : 'none';
+    const allowed = roomMembers[room]?.[currentUser?.uid];
+    option.hidden = !allowed;
   });
 }
 
@@ -586,24 +582,11 @@ function createInviteCode() {
   return code;
 }
 
-function createPasswordResetCode() {
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = 'PW-';
 
-  for (let i = 0; i < 8; i++) {
-    code += alphabet[Math.floor(Math.random() * alphabet.length)];
-  }
-
-  return code;
-}
 function switchRoom(roomName) {
   if (activeRoom === roomName) return;
 
   activeRoom = roomName;
-
-  document.querySelectorAll('.room-item').forEach(btn => {
-    btn.classList.toggle('active-room', btn.dataset.room === roomName);
-  });
 
   latestMessages = {};
   messagesEl.innerHTML = '<p class="empty-state">Loading messages...</p>';
@@ -877,32 +860,6 @@ roomMemberManager?.addEventListener('change', async (event) => {
   }
 });
 
-/*memberList.addEventListener('click', async (event) => {
-  console.log("CLICK DETECTED");
-  const button = event.target.closest('.reset-password-btn');
-  if (!button || !isAdmin) return;
-
-  const uid = button.dataset.uid;
-  if (!uid) return;
-
-  const resetCode = createPasswordResetCode();
-
-  try {
-    await set(ref(db, `passwordResets/${resetCode}`), {
-      uid,
-      active: true,
-      createdBy: currentUser.uid,
-      createdByName: userDisplayName,
-      createdAt: serverTimestamp()
-    });
-
-    alert(`Password Reset Code for member:\n\n${resetCode}`);
-  } catch (error) {
-    setStatus('Password reset code not created.', true);
-    console.error(error);
-  }
-});*/
-
 memberList.addEventListener('click', (event) => {
   const button = event.target.closest('.account-info-btn');
   if (!button || !isAdmin) return;
@@ -1022,14 +979,8 @@ exportChatBtn.addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-roomList?.addEventListener('click', (event) => {
-  const button = event.target.closest('.room-item');
-  if (!button) return;
-
-  const room = button.dataset.room;
-  if (!room) return;
-
-  switchRoom(room);
+roomDropdown?.addEventListener('change', (event) => {
+  switchRoom(event.target.value);
 });
 
 

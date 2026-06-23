@@ -24,17 +24,13 @@
     </header>
 
     <!-- Room Selector -->
-    <aside class="room-sidebar">
-      <div class="room-sidebar-header">
-        <h3>Rooms</h3>
-      </div>
-
-      <div id="roomList" class="room-list">
-        <button class="room-item active-room" data-room="main">Main Chat</button>
-        <button class="room-item" data-room="family">Family</button>
-        <button class="room-item" data-room="business">Business</button>
-      </div>
-    </aside>
+    <div class="room-dropdown-wrap">
+  <select id="roomDropdown" class="room-dropdown">
+    <option value="main">Main Chat</option>
+    <option value="family">Family</option>
+    <option value="business">Business</option>
+  </select>
+</div>
 
     <section id="messages" class="messages" aria-live="polite"></section>
 
@@ -143,9 +139,7 @@
       <p><strong>Account Type:</strong> <span id="infoAccountType">-</span></p>
       <p><strong>Created Date:</strong> <span id="infoCreatedDate">-</span></p>
       <p><strong>Last Online:</strong> <span id="infoLastOnline">-</span></p>
-      <p><strong>Status:</strong> <span id="infoStatus" class="status-badge">-</span>
-        
-</p>
+      <p><strong>Status:</strong> <span id="infoStatus" class="status-badge">-</span></p>
     </div>
 
     <button id="toggleAccountBtn" class="small-btn danger-btn" type="button">
