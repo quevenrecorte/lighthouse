@@ -637,8 +637,12 @@ function renderRoomMemberManager() {
     html += `
   <div class="room-manager-box">
     <div class="room-manager-header">
-      <h4>${escapeText(roomsData[room]?.name || room)}</h4>
-    </div>
+  <h4>${escapeText(roomsData[room]?.name || room)}</h4>
+
+  <button class="toggle-members-btn" data-room="${room}" type="button">
+    Members
+  </button>
+</div>
 
     <div class="room-actions">
       <label class="protected-toggle">
@@ -963,31 +967,20 @@ createRoomBtn?.addEventListener('click', () => {
 });
 
 roomMemberManager?.addEventListener('click', (event) => {
-  if (
-    event.target.matches('input') ||
-    event.target.closest('.room-member-item') ||
-    event.target.closest('.rename-room-btn') ||
-    event.target.closest('.delete-room-btn') ||
-    event.target.closest('.protected-room-checkbox')
-  ) {
-    return;
-  }
+  const button = event.target.closest('.toggle-members-btn');
+  if (!button) return;
 
-  const header = event.target.closest('.room-manager-header');
-  if (!header) return;
+  const roomId = button.dataset.room;
+  if (!roomId) return;
 
-  const roomBox = header.closest('.room-manager-box');
+  const roomBox = button.closest('.room-manager-box');
   if (!roomBox) return;
 
   const content = roomBox.querySelector('.room-manager-content');
   if (!content) return;
 
   const isHidden = content.classList.toggle('hidden');
-
-  const roomName = header.querySelector('h4')?.textContent?.toLowerCase();
-  if (!roomName) return;
-
-  activeRoomPanels[roomName] = !isHidden;
+  activeRoomPanels[roomId] = !isHidden;
 });
 
 roomMemberManager?.addEventListener('click', async (event) => {
