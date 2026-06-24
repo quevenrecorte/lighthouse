@@ -1,1 +1,1 @@
-Stable v3.5
+Stable v5.2.2
