@@ -1321,3 +1321,54 @@ input:focus {
   cursor: pointer;
   flex-shrink: 0;
 }
+
+.image-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: flex;
+  flex-direction: column;
+  z-index: 20000;
+  padding: 20px;
+}
+
+.image-modal.hidden {
+  display: none;
+}
+
+.image-modal-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.save-image-btn {
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: rgba(143, 216, 199, 0.18);
+  border: 1px solid rgba(143, 216, 199, 0.35);
+  color: white;
+  text-decoration: none;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.image-modal-close {
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.image-modal-content {
+  max-width: 100%;
+  max-height: calc(100vh - 100px);
+  margin: auto;
+  border-radius: 14px;
+  object-fit: contain;
+}

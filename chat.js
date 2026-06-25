@@ -77,6 +77,10 @@ const cancelReplyBtn = document.getElementById('cancelReplyBtn');
 const reactionPicker = document.getElementById('reactionPicker');
 const roomDropdown = document.getElementById('roomDropdown');
 console.log("roomDropdown =", roomDropdown);
+const imageModal = document.getElementById('imageModal');
+const modalImage = document.getElementById('modalImage');
+const closeImageModal = document.getElementById('closeImageModal');
+const saveImageBtn = document.getElementById('saveImageBtn');
 
 let currentUser = null;
 let currentProfile = null;
@@ -310,6 +314,19 @@ function setStatus(message = '', isError = false) {
   chatStatus.classList.toggle('error', isError);
   chatStatus.textContent = message;
 }
+
+function openImageModal(imageSrc, fileName) {
+  modalImage.src = imageSrc;
+  saveImageBtn.href = imageSrc;
+  saveImageBtn.download = fileName || `image-${Date.now()}.jpg`;
+  imageModal.classList.remove('hidden');
+}
+
+function closeModal() {
+  imageModal.classList.add('hidden');
+  modalImage.src = '';
+}
+
 function truncateText(text, max = 60) {
   if (!text) return '';
   return text.length > max ? text.slice(0, max) + '...' : text;
@@ -501,6 +518,8 @@ function listenToUsers() {
   });
 }
 
+
+
 function renderOnlineUsers() {
   onlineList.innerHTML = '';
   const onlineUsers = Object.values(allUsers).filter(user => user && user.online && user.approved !== false)
@@ -590,9 +609,12 @@ function renderMessages(snapshot) {
   <p class="message-text">${escapeText(message.text || '')}</p>
 
   ${message.fileType === 'image'
-  ? `<a href="${message.fileData}" download="${message.fileName || ('image-' + message.timestamp + '.jpg')}">
-       <img src="${message.fileData}" class="chat-image clickable-image">
-     </a>`
+  ? `<img 
+       src="${message.fileData}" 
+       class="chat-image clickable-image"
+       data-image="${message.fileData}"
+       data-filename="${message.fileName || ''}"
+     >`
   : ''}
 
   ${message.fileType === 'pdf'
@@ -653,7 +675,18 @@ ${message.fileType === 'file'
 `;
 
     messagesEl.appendChild(messageDiv);
-    markMessageSeen(id, message);
+
+const clickableImage = messageDiv.querySelector('.clickable-image');
+if (clickableImage) {
+  clickableImage.addEventListener('click', () => {
+    openImageModal(
+      clickableImage.dataset.image,
+      clickableImage.dataset.filename
+    );
+  });
+}
+
+markMessageSeen(id, message);
   });
 
   messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -1084,6 +1117,14 @@ if (button.classList.contains('react-message')) {
       setStatus('Message not deleted. Check database rules.', true);
       console.error(error);
     }
+  }
+});
+
+closeImageModal.addEventListener('click', closeModal);
+
+imageModal.addEventListener('click', (e) => {
+  if (e.target === imageModal) {
+    closeModal();
   }
 });
 
