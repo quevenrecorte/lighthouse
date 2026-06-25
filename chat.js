@@ -590,7 +590,7 @@ function renderMessages(snapshot) {
   <p class="message-text">${escapeText(message.text || '')}</p>
 
   ${message.fileType === 'image'
-  ? `<a href="${message.fileData}" target="_blank">
+  ? `<a href="${message.fileData}" download="${message.fileName || ('image-' + message.timestamp + '.jpg')}">
        <img src="${message.fileData}" class="chat-image clickable-image">
      </a>`
   : ''}
@@ -621,7 +621,7 @@ ${message.fileType === 'spreadsheet'
 
 ${message.fileType === 'text'
   ? `<div class="file-box">
-       <a href="${message.fileData}" target="_blank">
+       <a href="${message.fileData}" download="${message.fileName}">
          📄 Open Text File — ${message.fileName}
        </a>
      </div>`
