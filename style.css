@@ -1382,3 +1382,16 @@ input:focus {
 .chat-link:hover {
   opacity: 0.85;
 }
+
+.brand-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.app-version {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.6;
+  letter-spacing: 0.4px;
+}
