@@ -593,13 +593,45 @@ function renderMessages(snapshot) {
     ? `<img src="${message.fileData}" class="chat-image">`
     : ''}
 
-  ${message.fileType === 'file'
-    ? `<div class="file-box">
-         <a href="${message.fileData}" download="${message.fileName}">
-           📄 ${message.fileName}
-         </a>
-       </div>`
-    : ''}
+  ${message.fileType === 'pdf'
+  ? `<div class="file-box">
+       <a href="${message.fileData}" target="_blank">
+         📕 Open PDF — ${message.fileName}
+       </a>
+     </div>`
+  : ''}
+
+${message.fileType === 'document'
+  ? `<div class="file-box">
+       <a href="${message.fileData}" download="${message.fileName}">
+         📘 Download Document — ${message.fileName}
+       </a>
+     </div>`
+  : ''}
+
+${message.fileType === 'spreadsheet'
+  ? `<div class="file-box">
+       <a href="${message.fileData}" download="${message.fileName}">
+         📗 Download Spreadsheet — ${message.fileName}
+       </a>
+     </div>`
+  : ''}
+
+${message.fileType === 'text'
+  ? `<div class="file-box">
+       <a href="${message.fileData}" target="_blank">
+         📄 Open Text File — ${message.fileName}
+       </a>
+     </div>`
+  : ''}
+
+${message.fileType === 'file'
+  ? `<div class="file-box">
+       <a href="${message.fileData}" download="${message.fileName}">
+         📎 Download File — ${message.fileName}
+       </a>
+     </div>`
+  : ''}
 
   ${renderReactions(message)}
 
@@ -924,19 +956,33 @@ if (replyTarget) {
 };
     if (selectedFile) {
       const isImage = selectedFile.type.startsWith('image/');
-      if (isImage) {
-        const rawLimit = 10 * 1024 * 1024;
-        if (selectedFile.size > rawLimit) {
-          setStatus('Image too large. Max raw size is 10MB.', true);
-          return;
-        }
-      } else {
-        const fileLimit = 300 * 1024;
-        if (selectedFile.size > fileLimit) {
-          setStatus('File too large.', true);
-          return;
-        }
-      }
+const fileName = selectedFile.name.toLowerCase();
+
+const isPdf = fileName.endsWith('.pdf');
+const isText = fileName.endsWith('.txt');
+const isSpreadsheet =
+  fileName.endsWith('.xls') ||
+  fileName.endsWith('.xlsx') ||
+  fileName.endsWith('.csv');
+
+const isDocument =
+  fileName.endsWith('.doc') ||
+  fileName.endsWith('.docx');
+
+if (isImage) {
+  const rawLimit = 10 * 1024 * 1024;
+  if (selectedFile.size > rawLimit) {
+    setStatus('Image too large. Max raw size is 10MB.', true);
+    return;
+  }
+} else {
+  const fileLimit = 3 * 1024 * 1024; // 3MB
+
+  if (selectedFile.size > fileLimit) {
+    setStatus('Document too large. Max size is 3MB.', true);
+    return;
+  }
+}
 
       let fileData;
       if (isImage) {
@@ -950,8 +996,21 @@ if (replyTarget) {
         fileData = await fileToBase64(selectedFile);
       }
       payload.fileName = selectedFile.name;
-      payload.fileData = fileData;
-      payload.fileType = isImage ? 'image' : 'file';
+payload.fileData = fileData;
+
+if (isImage) {
+  payload.fileType = 'image';
+} else if (isPdf) {
+  payload.fileType = 'pdf';
+} else if (isSpreadsheet) {
+  payload.fileType = 'spreadsheet';
+} else if (isDocument) {
+  payload.fileType = 'document';
+} else if (isText) {
+  payload.fileType = 'text';
+} else {
+  payload.fileType = 'file';
+}
     }
     await push(ref(db, `rooms/${activeRoom}/messages`), payload);
     messageInput.value = '';
