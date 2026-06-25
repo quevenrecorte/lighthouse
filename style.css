@@ -574,6 +574,12 @@ input:focus {
   max-width: 100%;
   border-radius: 14px;
   display: block;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.chat-image:hover {
+  transform: scale(1.02);
 }
 
 .file-box {

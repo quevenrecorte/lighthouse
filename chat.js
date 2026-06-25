@@ -590,8 +590,10 @@ function renderMessages(snapshot) {
   <p class="message-text">${escapeText(message.text || '')}</p>
 
   ${message.fileType === 'image'
-    ? `<img src="${message.fileData}" class="chat-image">`
-    : ''}
+  ? `<a href="${message.fileData}" target="_blank">
+       <img src="${message.fileData}" class="chat-image clickable-image">
+     </a>`
+  : ''}
 
   ${message.fileType === 'pdf'
   ? `<div class="file-box">
