@@ -1372,3 +1372,13 @@ input:focus {
   border-radius: 14px;
   object-fit: contain;
 }
+
+.chat-link {
+  color: #8fd8c7;
+  text-decoration: underline;
+  word-break: break-word;
+}
+
+.chat-link:hover {
+  opacity: 0.85;
+}

@@ -310,6 +310,16 @@ function escapeText(value) {
   return div.innerHTML;
 }
 
+function linkifyText(text) {
+  const escaped = escapeText(text);
+
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  return escaped.replace(urlRegex, (url) => {
+    return `<a href="${url}" target="_blank" class="chat-link">${url}</a>`;
+  });
+}
+
 function setStatus(message = '', isError = false) {
   chatStatus.classList.toggle('error', isError);
   chatStatus.textContent = message;
@@ -606,7 +616,7 @@ function renderMessages(snapshot) {
     </div>
   ` : ''}
 
-  <p class="message-text">${escapeText(message.text || '')}</p>
+  <p class="message-text">${linkifyText(message.text || '')}</p>
 
   ${message.fileType === 'image'
   ? `<img 
@@ -644,7 +654,7 @@ ${message.fileType === 'spreadsheet'
 ${message.fileType === 'text'
   ? `<div class="file-box">
        <a href="${message.fileData}" download="${message.fileName}">
-         📄 Open Text File — ${message.fileName}
+         📄 Download Text File — ${message.fileName}
        </a>
      </div>`
   : ''}
