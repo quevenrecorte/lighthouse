@@ -107,21 +107,93 @@ function defaultName(user) {
 function listenToRooms() {
   console.log("listenToRooms started");
 
-  onValue(ref(db, 'rooms'), (snapshot) => {
-    console.log("rooms callback fired");
+  // ADMIN → full access
+  if (isAdmin) {
+    onValue(ref(db, 'rooms'), (snapshot) => {
+      console.log("rooms callback fired (admin)");
 
-    roomsData = snapshot.val() || {};
-    console.log("roomsData =", roomsData);
+      roomsData = snapshot.val() || {};
+      roomMembers = {};
 
-    Object.keys(roomsData).forEach(roomId => {
-      roomMembers[roomId] = roomsData[roomId].members || {};
+      Object.keys(roomsData).forEach(roomId => {
+        roomMembers[roomId] = roomsData[roomId].members || {};
+      });
+
+      renderRoomDropdown();
+      renderRoomMemberManager();
+      updateRoomVisibility();
     });
 
-    renderRoomDropdown();
-    renderRoomMemberManager();
-    updateRoomVisibility();
+    return;
+  }
+
+  // MEMBER → allowedRooms only
+  onValue(ref(db, `users/${currentUser.uid}/allowedRooms`), async (snapshot) => {
+    console.log("allowedRooms callback fired");
+
+    const allowedRooms = snapshot.val() || {};
+    const roomIds = Object.keys(allowedRooms);
+
+    roomsData = {};
+    roomMembers = {};
+
+    if (roomIds.length === 0) {
+      renderRoomDropdown();
+      return;
+    }
+
+    try {
+      for (const roomId of roomIds) {
+        const roomSnap = await get(ref(db, `rooms/${roomId}`));
+
+        if (roomSnap.exists()) {
+          const room = roomSnap.val();
+          roomsData[roomId] = room;
+          roomMembers[roomId] = room.members || {};
+        }
+      }
+
+      renderRoomDropdown();
+      updateRoomVisibility();
+    } catch (error) {
+      console.error(error);
+      setStatus('Failed to load rooms.', true);
+    }
   });
 }
+
+async function syncAllowedRooms() {
+  if (!isAdmin) {
+    console.log('Admin only.');
+    return;
+  }
+
+  try {
+    const updates = {};
+
+    Object.entries(roomsData).forEach(([roomId, room]) => {
+      const members = room.members || {};
+
+      Object.keys(members).forEach(uid => {
+        updates[`users/${uid}/allowedRooms/${roomId}`] = true;
+      });
+    });
+
+    if (Object.keys(updates).length === 0) {
+      console.log('No memberships found.');
+      return;
+    }
+
+    await update(ref(db), updates);
+    console.log('allowedRooms sync complete');
+    setStatus('allowedRooms synced successfully.');
+  } catch (error) {
+    console.error(error);
+    setStatus('Sync failed.', true);
+  }
+}
+
+window.syncAllowedRooms = syncAllowedRooms;
 
 function renderRoomDropdown() {
   if (!roomDropdown) return;
@@ -554,7 +626,19 @@ function renderMessages(snapshot) {
 }
 
 function startMessageListener() {
-  const messagesRef = query(ref(db, `rooms/${activeRoom}/messages`), limitToLast(150));
+  if (!isAdmin) {
+    const allowed = roomMembers[activeRoom]?.[currentUser?.uid];
+    if (!allowed) {
+      messagesEl.innerHTML = '<p class="empty-state">Access denied.</p>';
+      return;
+    }
+  }
+
+  const messagesRef = query(
+    ref(db, `rooms/${activeRoom}/messages`),
+    limitToLast(150)
+  );
+
   unsubscribeMessages = onValue(messagesRef, renderMessages, (error) => {
     setStatus('Unable to load messages. Check database rules.', true);
     console.error(error);
@@ -694,10 +778,20 @@ function createInviteCode() {
 
 
 function switchRoom(roomName) {
+  if (!roomName) return;
+
+  if (!isAdmin) {
+    const allowed = roomMembers[roomName]?.[currentUser?.uid];
+    if (!allowed) {
+      setStatus('Access denied to this room.', true);
+      renderRoomDropdown();
+      return;
+    }
+  }
+
   if (activeRoom === roomName) return;
 
   activeRoom = roomName;
-
   latestMessages = {};
   messagesEl.innerHTML = '<p class="empty-state">Loading messages...</p>';
 
@@ -713,6 +807,15 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   currentUser = user;
+  roomsData = {};
+  roomMembers = {};
+  latestMessages = {};
+  activeRoom = 'main';
+
+if (unsubscribeMessages) {
+  unsubscribeMessages();
+  unsubscribeMessages = null;
+}
   isAdmin = false;
   adminPanel.classList.add('hidden');
   memberList.innerHTML = '';
@@ -1148,10 +1251,12 @@ roomMemberManager?.addEventListener('change', async (event) => {
 
   try {
     if (checkbox.checked) {
-      await set(ref(db, `rooms/${room}/members/${uid}`), true);
-    } else {
-      await remove(ref(db, `rooms/${room}/members/${uid}`));
-    }
+  await set(ref(db, `rooms/${room}/members/${uid}`), true);
+  await set(ref(db, `users/${uid}/allowedRooms/${room}`), true);
+} else {
+  await remove(ref(db, `rooms/${room}/members/${uid}`));
+  await remove(ref(db, `users/${uid}/allowedRooms/${room}`));
+}
 
     setStatus('Room membership updated.');
     setTimeout(() => {
