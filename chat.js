@@ -237,7 +237,7 @@ function renderRoomDropdown() {
 
   messageInput.disabled = true;
   attachBtn.disabled = true;
-  messageForm.querySelector('button[type="submit"]').disabled = true;
+  sendBtn.disabled = true;
 
   return;
 }
@@ -252,7 +252,7 @@ function renderRoomDropdown() {
 
   messageInput.disabled = false;
   attachBtn.disabled = false;
-  messageForm.querySelector('button[type="submit"]').disabled = false;
+  sendBtn.disabled = false;
   
   startMessageListener();
 }
@@ -1072,7 +1072,9 @@ if (isImage) {
     selectedFile = null;
     fileInput.value = '';
     clearReplyPreview();
-    messageInput.focus();
+    if (window.innerWidth > 768) {
+  messageInput.focus();
+}
     setStatus('');
   } catch (error) {
     setStatus('Message not sent. Check database rules.', true);
