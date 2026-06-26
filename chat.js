@@ -81,6 +81,7 @@ const imageModal = document.getElementById('imageModal');
 const modalImage = document.getElementById('modalImage');
 const closeImageModal = document.getElementById('closeImageModal');
 const saveImageBtn = document.getElementById('saveImageBtn');
+const sendBtn = document.getElementById('sendBtn');
 
 let currentUser = null;
 let currentProfile = null;
@@ -980,8 +981,7 @@ profileForm.addEventListener('submit', async (event) => {
   }
 });
 
-messageForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
+async function sendMessage() {
   const text = cleanMessage(messageInput.value);
   if ((!text && !selectedFile) || !currentUser) return;
 
@@ -1077,6 +1077,15 @@ if (isImage) {
   } catch (error) {
     setStatus('Message not sent. Check database rules.', true);
     console.error(error);
+  }
+}
+
+sendBtn.addEventListener('click', sendMessage);
+
+messageInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    sendMessage();
   }
 });
 
