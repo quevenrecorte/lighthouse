@@ -325,6 +325,13 @@ function setStatus(message = '', isError = false) {
   chatStatus.textContent = message;
 }
 
+function shouldAutoScroll() {
+  const threshold = 120;
+  return (
+    messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight
+  ) < threshold;
+}
+
 function openImageModal(imageSrc, fileName) {
   modalImage.src = imageSrc;
   saveImageBtn.href = imageSrc;
@@ -582,6 +589,7 @@ async function markMessageSeen(id, message) {
 }
 
 function renderMessages(snapshot) {
+  const autoScroll = shouldAutoScroll();
   const data = snapshot.val();
   latestMessages = data || {};
   messagesEl.innerHTML = '';
@@ -699,7 +707,9 @@ if (clickableImage) {
 markMessageSeen(id, message);
   });
 
+  if (autoScroll) {
   messagesEl.scrollTop = messagesEl.scrollHeight;
+}
 }
 
 function startMessageListener() {
