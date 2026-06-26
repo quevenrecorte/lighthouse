@@ -612,14 +612,18 @@ function renderOnlineUsers() {
 }
 
 function seenText(message) {
-  if (!message.seenBy || !currentUser || message.uid !== currentUser.uid) return '';
-  const names = Object.entries(message.seenBy)
-    .filter(([uid]) => uid !== currentUser.uid)
+  if (!message.seenBy || !currentUser) return '';
+
+  // Only show seen status on your own messages
+  if (message.uid !== currentUser.uid) return '';
+
+  const viewers = Object.entries(message.seenBy)
+    .filter(([uid]) => uid !== message.uid)
     .map(([, seen]) => cleanName(seen.name) || 'Someone');
 
-  if (names.length === 0) return 'Sent';
-  if (names.length === 1) return `Seen by ${names[0]}`;
-  return `Seen by ${names.length} people`;
+  if (viewers.length === 0) return 'Sent';
+  if (viewers.length === 1) return `Seen by ${viewers[0]}`;
+  return `Seen by ${viewers.length} people`;
 }
 
 const seenWriteCache = new Set();
@@ -630,9 +634,12 @@ async function markMessageSeen(id, message) {
   // Prevent infinite listener loops:
   // once this user is already recorded in seenBy, do not write again.
   if (message.seenBy && message.seenBy[currentUser.uid]) return;
-  if (seenWriteCache.has(id)) return;
 
-  seenWriteCache.add(id);
+const cacheKey = `${activeRoom}_${id}_${currentUser.uid}`;
+
+if (seenWriteCache.has(cacheKey)) return;
+
+seenWriteCache.add(cacheKey);
   try {
     await update(ref(db, `rooms/${activeRoom}/messages/${id}/seenBy/${currentUser.uid}`), {
       name: userDisplayName,
@@ -640,7 +647,7 @@ async function markMessageSeen(id, message) {
     });
   } catch (error) {
     console.warn('Seen marker not saved.', error);
-    seenWriteCache.delete(id);
+    seenWriteCache.delete(cacheKey);
   }
 }
 
@@ -941,6 +948,7 @@ function switchRoom(roomName) {
   if (activeRoom === roomName) return;
 
   activeRoom = roomName;
+  seenWriteCache.clear();
 
   if (currentUser) {
   set(
