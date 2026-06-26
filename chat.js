@@ -1067,11 +1067,17 @@ if (isImage) {
   payload.fileType = 'file';
 }
     }
-    await push(ref(db, `rooms/${activeRoom}/messages`), payload);
     messageInput.value = '';
     selectedFile = null;
     fileInput.value = '';
     clearReplyPreview();
+
+    if (window.innerWidth <= 768) {
+  messageInput.blur();
+}
+    
+    await push(ref(db, `rooms/${activeRoom}/messages`), payload);
+
 
     setTimeout(() => {
   messagesEl.scrollTop = messagesEl.scrollHeight;
