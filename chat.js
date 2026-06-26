@@ -102,6 +102,7 @@ let roomModalMode = 'create';
 let renameTargetRoom = null;
 let roomMembers = {};
 let activeRoomPanels = {};
+let unreadRooms = {};
 
 function defaultName(user) {
   if (user.displayName) return user.displayName;
@@ -127,6 +128,7 @@ function listenToRooms() {
       renderRoomDropdown();
       renderRoomMemberManager();
       updateRoomVisibility();
+      updateUnreadRooms();
     });
 
     return;
@@ -160,6 +162,8 @@ function listenToRooms() {
 
       renderRoomDropdown();
       updateRoomVisibility();
+      updateUnreadRooms();
+
     } catch (error) {
       console.error(error);
       setStatus('Failed to load rooms.', true);
@@ -208,7 +212,12 @@ function renderRoomDropdown() {
   Object.entries(roomsData).forEach(([roomId, room]) => {
     const option = document.createElement('option');
     option.value = roomId;
-    option.textContent = room.name || roomId;
+    const hasUnread = unreadRooms[roomId];
+
+option.textContent = hasUnread
+  ? `${room.name || roomId} (new messages)`
+  : (room.name || roomId);
+
     roomDropdown.appendChild(option);
   });
 
@@ -255,6 +264,43 @@ function renderRoomDropdown() {
   sendBtn.disabled = false;
   
   startMessageListener();
+}
+
+async function updateUnreadRooms() {
+  if (!currentUser) return;
+
+  try {
+    const seenSnap = await get(
+      ref(db, `users/${currentUser.uid}/roomLastSeen`)
+    );
+
+    const roomLastSeen = seenSnap.val() || {};
+    unreadRooms = {};
+
+    for (const roomId of Object.keys(roomsData)) {
+      const msgSnap = await get(
+        query(ref(db, `rooms/${roomId}/messages`), limitToLast(1))
+      );
+
+      if (!msgSnap.exists()) {
+        unreadRooms[roomId] = false;
+        continue;
+      }
+
+      const messages = msgSnap.val();
+      const latestMsg = Object.values(messages)[0];
+
+      const lastSeen = roomLastSeen[roomId] || 0;
+      const latestTime = latestMsg.createdAt || 0;
+
+      unreadRooms[roomId] = latestTime > lastSeen;
+    }
+
+    renderRoomDropdown();
+
+  } catch (error) {
+    console.error('Unread room check failed:', error);
+  }
 }
 
 function cleanName(value) {
@@ -888,6 +934,20 @@ function switchRoom(roomName) {
   if (activeRoom === roomName) return;
 
   activeRoom = roomName;
+
+  if (currentUser) {
+  set(
+    ref(db, `users/${currentUser.uid}/roomLastSeen/${roomName}`),
+    Date.now()
+  );
+}
+unreadRooms[roomName] = false;
+Array.from(roomDropdown.options).forEach(option => {
+  if (option.value === roomName) {
+    option.textContent = roomsData[roomName]?.name || roomName;
+  }
+});
+
   latestMessages = {};
   messagesEl.innerHTML = '<p class="empty-state">Loading messages...</p>';
 
@@ -938,6 +998,11 @@ if (unsubscribeMessages) {
     listenToProfile(user);
     listenToUsers();
     listenToRooms();
+
+    set(
+  ref(db, `users/${user.uid}/roomLastSeen/${activeRoom}`),
+  Date.now()
+);
 
   } catch (error) {
     setStatus('Unable to load profile. Check database rules.', true);
