@@ -1062,13 +1062,13 @@ input:focus {
     border-radius: 12px;
   }
 
-  #messageForm button[type="submit"] {
-    height: 42px !important;
-    width: 82px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border-radius: 12px !important;
-  }
+  #sendBtn {
+  height: 42px !important;
+  width: 82px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 12px !important;
+}
 
   .account-card {
     width: 98%;
@@ -1177,7 +1177,7 @@ input:focus {
   border-radius: 14px;
 }
 
-#messageForm button[type="submit"] {
+#sendBtn {
   width: 120px !important;
   height: 46px !important;
   margin: 0 !important;
