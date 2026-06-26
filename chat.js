@@ -103,6 +103,7 @@ let renameTargetRoom = null;
 let roomMembers = {};
 let activeRoomPanels = {};
 let unreadRooms = {};
+let messageListenerToken = 0;
 
 function defaultName(user) {
   if (user.displayName) return user.displayName;
@@ -800,6 +801,10 @@ markMessageSeen(id, message);
 }
 
 function startMessageListener() {
+  messageListenerToken++;
+  const myToken = messageListenerToken;
+  const roomAtStart = activeRoom;
+
   if (!isAdmin) {
     const allowed = roomMembers[activeRoom]?.[currentUser?.uid];
     if (!allowed) {
@@ -813,12 +818,23 @@ function startMessageListener() {
     limitToLast(150)
   );
 
-  unsubscribeMessages = onValue(messagesRef, renderMessages, (error) => {
-    setStatus('Unable to load messages. Check database rules.', true);
-    console.error(error);
-  });
-}
+  unsubscribeMessages = onValue(
+    messagesRef,
+    (snapshot) => {
+      // Ignore stale listeners
+      if (myToken !== messageListenerToken) return;
 
+      // Ignore if room changed
+      if (roomAtStart !== activeRoom) return;
+
+      renderMessages(snapshot);
+    },
+    (error) => {
+      setStatus('Unable to load messages. Check database rules.', true);
+      console.error(error);
+    }
+  );
+}
 function renderMemberList() {
   if (!memberList) return;
   if (!isAdmin) {
