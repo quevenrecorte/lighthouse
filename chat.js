@@ -308,7 +308,17 @@ if (
 }
     }
 
-    renderRoomDropdown();
+    // renderRoomDropdown();
+
+    Array.from(roomDropdown.options).forEach(option => {
+  const roomId = option.value;
+  const room = roomsData[roomId];
+  const hasUnread = unreadRooms[roomId];
+
+  option.textContent = hasUnread
+    ? `${room?.name || roomId} (new messages)`
+    : (room?.name || roomId);
+});
 
   } catch (error) {
     console.error('Unread room check failed:', error);
