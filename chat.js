@@ -985,9 +985,12 @@ Array.from(roomDropdown.options).forEach(option => {
   latestMessages = {};
   messagesEl.innerHTML = '<p class="empty-state">Loading messages...</p>';
 
-  if (unsubscribeMessages) unsubscribeMessages();
+  if (unsubscribeMessages) {
+  unsubscribeMessages();
+  unsubscribeMessages = null;
+}
 
-  startMessageListener();
+startMessageListener();
 }
 
 onAuthStateChanged(auth, async (user) => {
@@ -1667,7 +1670,10 @@ signOutBtn.addEventListener('click', async () => {
   signOutBtn.textContent = 'Signing out...';
 
   try {
-    if (unsubscribeMessages) unsubscribeMessages();
+    if (unsubscribeMessages) {
+  unsubscribeMessages();
+  unsubscribeMessages = null;
+}
     if (unsubscribeOnline) unsubscribeOnline();
     if (unsubscribeProfile) unsubscribeProfile();
     if (unsubscribeUsers) unsubscribeUsers();
