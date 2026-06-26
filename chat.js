@@ -226,9 +226,17 @@ option.textContent = hasUnread
 
   if (isAdmin) {
   roomDropdown.value = activeRoom;
+
+  messageInput.disabled = false;
+  attachBtn.disabled = false;
+  sendBtn.disabled = false;
+
+  if (!unsubscribeMessages) {
+    startMessageListener();
+  }
+
   return;
 }
-
   const allowedRooms = Object.keys(roomsData).filter(
     roomId => roomMembers[roomId]?.[currentUser?.uid]
   );
@@ -257,11 +265,13 @@ option.textContent = hasUnread
 
   roomDropdown.value = activeRoom;
 
-  if (unsubscribeMessages) unsubscribeMessages();
+messageInput.disabled = false;
+attachBtn.disabled = false;
+sendBtn.disabled = false;
 
-  messageInput.disabled = false;
-  attachBtn.disabled = false;
-  sendBtn.disabled = false;
+if (!unsubscribeMessages) {
+  startMessageListener();
+}
 }
 
 async function updateUnreadRooms() {
@@ -1022,11 +1032,6 @@ if (unsubscribeMessages) {
     listenToProfile(user);
     listenToUsers();
     listenToRooms();
-
-    setTimeout(() => {
-  if (unsubscribeMessages) unsubscribeMessages();
-  startMessageListener();
-}, 500);
 
     set(
   ref(db, `users/${user.uid}/roomLastSeen/${activeRoom}`),
