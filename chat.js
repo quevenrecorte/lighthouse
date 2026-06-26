@@ -354,7 +354,9 @@ function showReplyPreview(messageId, message) {
   replyTarget = {
     messageId,
     sender: message.name || 'User',
-    text: message.text || '[Attachment]'
+    text: message.text || '[Attachment]',
+    fileType: message.fileType || null,
+    fileData: message.fileData || null
   };
 
   replySender.textContent = replyTarget.sender;
@@ -619,11 +621,17 @@ function renderMessages(snapshot) {
   </div>
 
   ${message.replyTo ? `
-    <div class="reply-box">
-      <strong>${escapeText(message.replyTo.sender)}</strong>
-      <p>${escapeText(message.replyTo.text)}</p>
-    </div>
-  ` : ''}
+  <div class="reply-box">
+    <strong>${escapeText(message.replyTo.sender)}</strong>
+    ${message.replyTo.fileType !== 'image'
+  ? `<p>${escapeText(message.replyTo.text)}</p>`
+  : ''}
+
+    ${message.replyTo.fileType === 'image'
+      ? `<img src="${message.replyTo.fileData}" class="reply-thumb">`
+      : ''}
+  </div>
+` : ''}
 
   <p class="message-text">${linkifyText(message.text || '')}</p>
 
@@ -1006,7 +1014,9 @@ if (replyTarget) {
   payload.replyTo = {
     messageId: replyTarget.messageId,
     sender: replyTarget.sender,
-    text: replyTarget.text
+    text: replyTarget.text,
+    fileType: replyTarget.fileType,
+    fileData: replyTarget.fileData
   };
 };
     if (selectedFile) {
