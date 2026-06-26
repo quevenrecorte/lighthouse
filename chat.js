@@ -1072,6 +1072,12 @@ if (isImage) {
     selectedFile = null;
     fileInput.value = '';
     clearReplyPreview();
+
+    setTimeout(() => {
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}, 150);
+
+
     if (window.innerWidth > 768) {
   messageInput.focus();
 }
