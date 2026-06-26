@@ -293,7 +293,14 @@ async function updateUnreadRooms() {
       const lastSeen = roomLastSeen[roomId] || 0;
       const latestTime = latestMsg.createdAt || 0;
 
-      unreadRooms[roomId] = latestTime > lastSeen;
+if (
+  latestMsg.uid === currentUser.uid ||
+  roomId === activeRoom
+) {
+  unreadRooms[roomId] = false;
+} else {
+  unreadRooms[roomId] = latestTime > lastSeen;
+}
     }
 
     renderRoomDropdown();
@@ -942,6 +949,7 @@ function switchRoom(roomName) {
   );
 }
 unreadRooms[roomName] = false;
+
 Array.from(roomDropdown.options).forEach(option => {
   if (option.value === roomName) {
     option.textContent = roomsData[roomName]?.name || roomName;
