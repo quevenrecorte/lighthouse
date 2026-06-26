@@ -130,10 +130,6 @@ function listenToRooms() {
       updateRoomVisibility();
       updateUnreadRooms();
 
-if (unsubscribeMessages) unsubscribeMessages();
-startMessageListener();
-
-      
     });
 
     return;
@@ -168,9 +164,6 @@ startMessageListener();
       renderRoomDropdown();
       updateRoomVisibility();
       updateUnreadRooms();
-
-if (unsubscribeMessages) unsubscribeMessages();
-startMessageListener();
 
     } catch (error) {
       console.error(error);
@@ -1029,6 +1022,11 @@ if (unsubscribeMessages) {
     listenToProfile(user);
     listenToUsers();
     listenToRooms();
+
+    setTimeout(() => {
+  if (unsubscribeMessages) unsubscribeMessages();
+  startMessageListener();
+}, 500);
 
     set(
   ref(db, `users/${user.uid}/roomLastSeen/${activeRoom}`),
