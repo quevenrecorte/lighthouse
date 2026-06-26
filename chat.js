@@ -129,6 +129,11 @@ function listenToRooms() {
       renderRoomMemberManager();
       updateRoomVisibility();
       updateUnreadRooms();
+
+if (unsubscribeMessages) unsubscribeMessages();
+startMessageListener();
+
+      
     });
 
     return;
@@ -163,6 +168,9 @@ function listenToRooms() {
       renderRoomDropdown();
       updateRoomVisibility();
       updateUnreadRooms();
+
+if (unsubscribeMessages) unsubscribeMessages();
+startMessageListener();
 
     } catch (error) {
       console.error(error);
@@ -224,10 +232,9 @@ option.textContent = hasUnread
   updateRoomVisibility();
 
   if (isAdmin) {
-    roomDropdown.value = activeRoom;
-    startMessageListener();
-    return;
-  }
+  roomDropdown.value = activeRoom;
+  return;
+}
 
   const allowedRooms = Object.keys(roomsData).filter(
     roomId => roomMembers[roomId]?.[currentUser?.uid]
@@ -262,8 +269,6 @@ option.textContent = hasUnread
   messageInput.disabled = false;
   attachBtn.disabled = false;
   sendBtn.disabled = false;
-  
-  startMessageListener();
 }
 
 async function updateUnreadRooms() {
